@@ -1,9 +1,18 @@
-# About
-This is the demo site for [Fuwari](https://github.com/saicaca/fuwari).
+# 关于我
 
-::github{repo="saicaca/fuwari"}
 
-> ### Sources of images used in this site
-> - [Unsplash](https://unsplash.com/)
-> - [星と少女](https://www.pixiv.net/artworks/108916539) by [Stella](https://www.pixiv.net/users/93273965)
-> - [Rabbit - v1.4 Showcase](https://civitai.com/posts/586908) by [Rabbit_YourMajesty](https://civitai.com/user/Rabbit_YourMajesty)
+很高兴你能来了解我，我叫白咲雫，你也可以叫我罗稽，红毛。   
+我没读过多少书，博客里可能写不出什么高质量的文章。  
+目前民办五年制大专在读，暂时目标是自考本科。  
+
+2007年出生于中国的一个边境小城，或许你没听说过，但你一定知道那里的特产普洱茶。   
+
+
+### 我感兴趣的东西
+- 偶尔观看电竞赛事
+- 长假会出远门
+- 喜欢看生物，医学，化学一类的视频
+- 喜欢打游戏，尤其是cs
+- 喜欢折腾硬件，自己diy
+- 隔一段时间会猛补番
+- 会折腾一些有用没用的小玩意

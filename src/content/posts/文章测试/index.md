@@ -3,8 +3,8 @@ title: 测试
 published: 2025-05-26
 description: "文章测试"
 image: "./cover.jpg"
-tags: ["Fuwari", "Blogging", "Customization"]
-category: Guides
+tags: ["测试"]
+category: 无分类
 draft: false
 ---
 
@@ -29,10 +29,10 @@ __简单__ 的测试
 1. 简单的测试
 
 - 简单的测试
-- 简单的测试
     - 简单的测试
-    -简单的测试
+    - 简单的测试
 - 简单的测试
 
-![Example Image](cover.jpg)
+图床测试
+![github图床测试](https://cdn.jsdelivr.net/gh/luojisama/pic_bed@main/img/202505261710037.png "github图床测试")
 

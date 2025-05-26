@@ -11,12 +11,12 @@ export const siteConfig: SiteConfig = {
 	subtitle: "歇斯底里是崩溃，底里歇斯是美味",
 	lang: "zh_CN", // 可选值: 'en', 'zh_CN', 'zh_TW', 'ja', 'ko', 'es', 'th'
 	themeColor: {
-		hue: 250, // 主题色默认色相值，范围 0-360。例如红色为0，蓝绿色为200，青色为250，粉色为345
+		hue: 180, // 主题色默认色相值，范围 0-360。例如红色为0，蓝绿色为200，青色为250，粉色为345
 		fixed: false, // 是否对访客隐藏主题色选择器
 	},
 	banner: {
 		enable: false,
-		src: "assets/images/demo-banner.png", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
+		src: "assets/images/banner.png", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
 		position: "center", // 类似CSS的object-position属性，仅支持'top'、'center'、'bottom'，默认为'center'
 		credit: {
 			enable: false, // 是否显示图片版权信息
@@ -43,6 +43,7 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Home,
 		LinkPreset.Archive,
 		LinkPreset.About,
+		LinkPreset.Friends,  
 		{
 			name: "GitHub",
 			url: "https://github.com/saicaca/fuwari", // 内部链接不需要包含基础路径，会自动添加
@@ -52,7 +53,7 @@ export const navBarConfig: NavBarConfig = {
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "assets/images/demo-avatar.png", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
+	avatar: "assets/images/avatar.png", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
 	name: "白咲雫",
 	bio: "歇斯底里是崩溃，底里歇斯是美味.",
 	links: [
