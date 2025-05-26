@@ -7,33 +7,33 @@ import type {
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: "Fuwari",
-	subtitle: "Demo Site",
-	lang: "en", // 'en', 'zh_CN', 'zh_TW', 'ja', 'ko', 'es', 'th'
+	title: "白咲のblog",
+	subtitle: "歇斯底里是崩溃，底里歇斯是美味",
+	lang: "zh_CN", // 可选值: 'en', 'zh_CN', 'zh_TW', 'ja', 'ko', 'es', 'th'
 	themeColor: {
-		hue: 250, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
-		fixed: false, // Hide the theme color picker for visitors
+		hue: 250, // 主题色默认色相值，范围 0-360。例如红色为0，蓝绿色为200，青色为250，粉色为345
+		fixed: false, // 是否对访客隐藏主题色选择器
 	},
 	banner: {
 		enable: false,
-		src: "assets/images/demo-banner.png", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
-		position: "center", // Equivalent to object-position, only supports 'top', 'center', 'bottom'. 'center' by default
+		src: "assets/images/demo-banner.png", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
+		position: "center", // 类似CSS的object-position属性，仅支持'top'、'center'、'bottom'，默认为'center'
 		credit: {
-			enable: false, // Display the credit text of the banner image
-			text: "", // Credit text to be displayed
-			url: "", // (Optional) URL link to the original artwork or artist's page
+			enable: false, // 是否显示图片版权信息
+			text: "", // 需要显示的版权文字
+			url: "", // （可选）图片原作品或作者页面的链接
 		},
 	},
 	toc: {
-		enable: true, // Display the table of contents on the right side of the post
-		depth: 2, // Maximum heading depth to show in the table, from 1 to 3
+		enable: true, // 在文章右侧显示目录
+		depth: 2, // 目录显示的最大标题层级，取值范围1-3
 	},
 	favicon: [
-		// Leave this array empty to use the default favicon
+		// 保留空数组则使用默认favicon
 		// {
-		//   src: '/favicon/icon.png',    // Path of the favicon, relative to the /public directory
-		//   theme: 'light',              // (Optional) Either 'light' or 'dark', set only if you have different favicons for light and dark mode
-		//   sizes: '32x32',              // (Optional) Size of the favicon, set only if you have favicons of different sizes
+		//   src: '/favicon/icon.png',    // favicon路径，相对于/public目录
+		//   theme: 'light',              // （可选）'light'或'dark'，仅在需要为不同模式设置不同图标时使用
+		//   sizes: '32x32',              // （可选）图标尺寸，仅在需要设置不同尺寸图标时使用
 		// }
 	],
 };
@@ -45,34 +45,39 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.About,
 		{
 			name: "GitHub",
-			url: "https://github.com/saicaca/fuwari", // Internal links should not include the base path, as it is automatically added
-			external: true, // Show an external link icon and will open in a new tab
+			url: "https://github.com/saicaca/fuwari", // 内部链接不需要包含基础路径，会自动添加
+			external: true, // 显示外部链接图标并在新标签页打开
 		},
 	],
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "assets/images/demo-avatar.png", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
-	name: "Lorem Ipsum",
-	bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+	avatar: "assets/images/demo-avatar.png", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
+	name: "白咲雫",
+	bio: "歇斯底里是崩溃，底里歇斯是美味.",
 	links: [
 		{
 			name: "Twitter",
-			icon: "fa6-brands:twitter", // Visit https://icones.js.org/ for icon codes
-			// You will need to install the corresponding icon set if it's not already included
-			// `pnpm add @iconify-json/<icon-set-name>`
-			url: "https://twitter.com",
+			icon: "fa6-brands:twitter", // 图标代码查询：https://icones.js.org/
+			// 如果使用未包含的图标集需要先安装：`pnpm add @iconify-json/<图标集名称>`
+			url: "https://x.com/shizuku__191981",
 		},
 		{
 			name: "Steam",
 			icon: "fa6-brands:steam",
-			url: "https://store.steampowered.com",
+			url: "https://steamcommunity.com/id/shirosakishizuku/",
 		},
 		{
-			name: "GitHub",
-			icon: "fa6-brands:github",
-			url: "https://github.com/saicaca/fuwari",
+			name: "QQ",
+			icon: "fa6-brands:qq",
+			url: "https://qm.qq.com/q/BdkE3VO22s",
 		},
+		{
+			name: "BiliBili",
+			icon: "fa6-brands:bilibili",
+			url: "https://space.bilibili.com/187685621",
+		},
+		
 	],
 };
 
