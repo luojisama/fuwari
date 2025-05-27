@@ -16,7 +16,7 @@ export const siteConfig: SiteConfig = {
 	},
 	banner: {
 		enable: true,
-		src: "assets/images/banner.png", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
+		src: "assets/images/banner.jpg", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
 		position: "center", // 类似CSS的object-position属性，仅支持'top'、'center'、'bottom'，默认为'center'
 		credit: {
 			enable: false, // 是否显示图片版权信息
