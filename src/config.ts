@@ -78,6 +78,11 @@ export const profileConfig: ProfileConfig = {
 			icon: "fa6-brands:bilibili",
 			url: "https://space.bilibili.com/187685621",
 		},
+		{
+			name: "github",
+			icon: "fa6-brands:github‘",
+			url: "https://github.com/luojisama",
+		},
 		
 	],
 };
