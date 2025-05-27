@@ -11,7 +11,7 @@ export const siteConfig: SiteConfig = {
 	subtitle: "歇斯底里是崩溃，底里歇斯是美味",
 	lang: "zh_CN", // 可选值: 'en', 'zh_CN', 'zh_TW', 'ja', 'ko', 'es', 'th'
 	themeColor: {
-		hue: 180, // 主题色默认色相值，范围 0-360。例如红色为0，蓝绿色为200，青色为250，粉色为345
+		hue: 220, // 主题色默认色相值，范围 0-360。例如红色为0，蓝绿色为200，青色为250，粉色为345
 		fixed: false, // 是否对访客隐藏主题色选择器
 	},
 	banner: {
