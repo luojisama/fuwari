@@ -15,7 +15,7 @@ export const siteConfig: SiteConfig = {
 		fixed: false, // 是否对访客隐藏主题色选择器
 	},
 	banner: {
-		enable: false,
+		enable: true,
 		src: "assets/images/banner.png", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
 		position: "center", // 类似CSS的object-position属性，仅支持'top'、'center'、'bottom'，默认为'center'
 		credit: {
