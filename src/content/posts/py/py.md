@@ -1,7 +1,7 @@
 ---
-title: Python 0基础教程  长期更新
+title: Python 零基础教程  长期更新
 published: 2025-05-28
-description: Python的0基础教程
+description: Python的零基础教程
 image: ""
 tags:
   - 教程
@@ -31,10 +31,12 @@ Python下载地址：([Download Python | Python.org](https://www.python.org/down
 
 # 文本编辑器
 
+## VS Code
 VS Code是**轻量级、高度可扩展的代码编辑器**。通过丰富的插件市场可以扩展成功能强大的IDE，支持几乎所有主流语言和框架。核心是通用性、灵活性和速度。  
 下载地址：[Visual Studio Code - Code Editing. Redefined](https://code.visualstudio.com/)   
 
 
+## PyCharm
 PyCharm是一个专注于 **Python开发** 的**全功能IDE**。深度集成Python生态系统，开箱即用，提供大量智能功能和专业工具。   
 下载地址：[Download PyCharm: The Python IDE for data science and web development by JetBrains](https://www.jetbrains.com/pycharm/download/?section=windows)
 
@@ -113,7 +115,7 @@ Python可以处理任意大小的整数，包括负整数，在程序中的表�
 浮点数也就是小数，之所以称为浮点数，是因为按照科学记数法表示时，一个浮点数的小数点位置是可变的，比如 $1.23 \times 10^9$ 和 $12.3 \times 10^8$ 是完全相等的.浮点数可以用数学写法，如`1.23`，`3.14`，`-9.01`，等等。但是对于很大或很小的浮点数，就必须用科学计数法表示，把10用e替代，$1.23 \times 10^9$ 就是`1.23e9`   
 
 ### 字符串 str
-字符串是由单引号`'`或双引号`"`包裹起来的任意文本。   
+字符串是由单引号`'`或双引号`"`包裹起来的任意文本，包括空格。   
 如果字符串内部既包含`'`又包含`"`时可以用转义字符`\`来标识，比如：  
 ```python
 'I\'m \"OK\"!'
@@ -160,11 +162,249 @@ int(a)
 
 ## 逻辑运算符
  
- **（逻辑与）**`and`   
+ **逻辑与**`and`   
 	**规则**：左右条件**同时为真**时返回 `True`，否则返回 `False`。
 
- **（逻辑或）**`or`   
+ **逻辑或**`or`   
 	**规则**：左右条件**任意一个为真**时返回 `True`，否则返回 `False`。
 
- **（逻辑非）** `not`   
+ **逻辑非** `not`   
 	  **规则**：对条件取反，`True` 变 `False`，`False` 变 `True`。
+
+## 优先级
+一般来说算数>比较>逻辑>赋值，可以通过添加小括号`()`的方式来调整运算符优先级。
+
+# 选择结构
+Python 的选择结构通过 **条件判断** 控制程序的分支执行，主要包括以下三种形式：  
+## `if`语句
+**单分支选择**：当条件为 `True` 时执行代码块。例：  
+```python
+age = 18
+if age >= 18:
+    print("已成年")  # 条件成立时执行
+```
+## `if-else`语句
+**双分支选择**：根据条件二选一执行。例：  
+```python
+score = 75
+if score >= 60:
+    print("及格")
+else:
+    print("不及格")  # 条件不成立时执行
+```
+## `if-elif-else`语句
+**多分支选择**：依次判断多个条件，执行第一个满足的分支。例：   
+```python
+grade = 85
+if grade >= 90:
+    print("优秀")
+elif grade >= 80:  # 前一个条件不满足时检查
+    print("良好")  # 输出: 良好
+else:
+    print("待提高")
+```
+## 嵌套
+基本语法如下：
+```python
+if 条件表达式1:
+	if 条件2表达式:
+		执行代码1
+	else:
+		执行代码2
+else:
+	执行代码3
+```
+
+- **缩进规则**：Python 通过缩进（通常 4 个空格）定义代码块，缩进错误会导致语法错误。
+- **条件表达式**：支持 `and`、`or`、`not` 组合复杂逻辑。
+多分支时`else`可省略不写。   
+选择结构是 Python 流程控制的基础，广泛用于数据过滤、用户交互等场景。
+
+# 循环
+在Python中有两种循环方式，分别是`while`与`for`
+
+## `while`循环
+**特点**：  
+**基于条件**：只要条件为 `True`，就重复执行代码块。   
+**适用场景**：不确定循环次数时（如用户输入、游戏循环）。
+语法如下：
+```python
+while 条件:
+    循环体
+```
+例：
+```python
+count = 0
+while count < 3:
+    print(f"Count: {count}")
+    count += 1
+```
+输出：
+```python
+Count: 0
+Count: 1
+Count: 2
+```
+若条件永远为 `True`，会导致**无限循环**（需用 `break` 或修改条件终止）。   
+可用 `else` 分支（循环正常结束时执行，被 `break` 打断则不执行）。
+## `for`循环
+**特点**：   
+**遍历序列**：对可迭代对象（如列表、字符串、字典等）逐个处理。   
+**适用场景**：已知循环次数或需遍历数据集合时。
+语法如下：
+```python
+for 变量 in 可迭代对象:
+    循环体
+```
+例：
+```python
+fruits = ["apple", "banana", "cherry"]
+for fruit in fruits:
+    print(fruit)
+```
+输出：
+```
+apple
+banana
+cherry
+```
+可用 `range()`：生成数字序列控制循环次数。
+循环中可使用`break`跳出循环，`continue`跳过此次循环。
+
+# 字符串
+Python中字符串也有许多操作，像是取出单个字符，获取长度等。  
+## 保留格式输出
+在开始`print()`中，输出多个通常是在同一行，如果像保留格式输出可以使用三个单引号`'''`或双引号`"""`括起来，如下所示：
+```python
+print("""a
+b""")
+```
+输出为：
+```
+a
+b
+```
+## 下标
+在 Python 中，字符串是 **不可变的有序字符序列**，可以通过 **下标（索引）** 访问单个字符。下标从 `0` 开始，从左到右依次递增；同时也支持 **负数下标**，从右向左访问（`-1` 表示最后一个字符）。
+语法：
+```python
+字符串[下标]
+```
+例：
+```python
+str1 = "Python零基础教程"
+print(str1[5])
+```
+输出：
+```
+n
+```
+## 获取字符串长度
+在 Python 中，可以使用 **`len()`** 函数获取字符串的长度（字符数量）。  
+例：
+```python
+s = "Hello, 世界"
+print(len(s)) 
+```
+输出：
+```
+9
+```
+**特殊字符**：如换行符 `\n`、制表符 `\t` 等均计为 1 个字符。
+
+## 切片
+切片是 Python 中一种强大的操作，用于从字符串（或列表等序列）中提取子序列。
+语法：
+```python
+字符串[起始索引:结束索引:步长]
+```
+**`起始索引`**：切片开始位置，为负时从末尾开始（包含该索引）。   
+**`结束索引`**：切片结束位置（不包含该索引）。   
+**`步长`**：每隔多少个字符取一次，为正时从左向右，为负时反之（默认为1）。
+例:
+```python
+s = "Hello, Python!"
+print(s[0:5])
+print(s[7:13])   
+print(s[:5])
+print(s[7:])
+print(s[::2])
+```
+输出：
+```
+Hello   #（索引0到4）
+Python  #（索引7到12）
+Hello   #（省略起始，默认从0开始）
+Python! #（省略结束，默认到末尾）
+Hlo yhn #（步长为2，隔字符取）
+```
+
+## 字符串运算符
+Python 提供了多种字符串运算符，用于拼接、重复、比较和成员检查等操作。以下是常用的字符串运算符及其用法：
+
+### 字符串拼接  `+`
+连接两个字符串，链接别的对象需先转换。
+例：
+```python
+s1 = "Hello"
+s2 = "World"
+print(s1 + s2)
+```
+输出：
+```
+HelloWorld
+```
+
+###  重复运算符 `*`
+重复字符串指定次数。  
+例：
+```python
+s = "Hi"
+print(s * 3)
+```
+输出：
+```
+HiHiHi
+```
+
+### 成员运算符 `in` / `not in`
+检查子串是否存在于字符串中，为布尔值。
+例：
+```python
+text = "Python is fun"
+print("fun" in text)
+print("Java" not in text)
+```
+输出：
+```
+True
+True
+```
+
+### **比较运算符 `==`, `!=`, `>`, `<` 等**
+**功能**：按字典序（ASCII/Unicode 值）比较字符串。  
+**规则**：逐字符比较，直到分出大小。  
+例：
+```python
+print("apple" == "apple")
+print("apple" < "banana")
+print("Zoo" > "apple")
+```
+输出：
+```
+True
+True  #（'a' < 'b'）
+False #（'Z' < 'a'）
+```
+
+### 原始字符串 `r` / `R`
+忽略转义字符（如 `\n`、`\t`）。  
+例：
+```python
+path = r"C:\new\folder"
+print(path)
+```
+输出：
+```
+C:\new\folder   #（\n 不换行）
+```
