@@ -8,7 +8,6 @@ tags:
   - Python
 category: 可能有用的教程
 draft: false
-lang: ""
 ---
 
 >我也正在学习python，一边学习一边编写本篇教程，希望对你能有一点帮助
@@ -46,20 +45,20 @@ PyCharm是一个专注于 **Python开发** 的**全功能IDE**。深度集成P
 用`print()`在括号中加上字符串，就可以向屏幕上输出指定的文字。比如输出`'hello, world'`，用代码实现如下：  
 ```python
 print("Hello, World!")
-Hello, World!
+Hello, World! #输出
 ```
 
 `print()`函数也可以接受多个字符串，用逗号“,”隔开，就可以连成一串输出，每一个","在输出中以空格表示：
 ```python
 print("Hello, World!","你好，世界！")
-Hello, World! 你好，世界！
+Hello, World! 你好，世界！#输出
 ```
 `print()`函数也可以打印数字与计算结果：
 ```python
 print(100)
-100
+100  #输出
 print(100+200)
-300
+300  #输出
 ```
 
 ## 输入
@@ -271,6 +270,53 @@ cherry
 可用 `range()`：生成数字序列控制循环次数。
 循环中可使用`break`跳出循环，`continue`跳过此次循环。
 
+## 循环嵌套
+和if一样，两种循环也可以嵌套。
+### for循环嵌套
+语法：
+```python
+for 外层变量 in 外层序列:
+    for 内层变量 in 内层序列:
+        循环体
+```
+例：
+```python
+for i in range(1, 10):      # 外层循环：控制行数
+    for j in range(1, i+1): # 内层循环：控制每行的列数
+        print(f"{j}×{i}={i*j}", end="\t")
+    print()  # 换行
+```
+输出：
+```
+1×1=1	
+1×2=2	2×2=4	
+1×3=3	2×3=6	3×3=9	
+...
+1×9=9	2×9=18	...	9×9=81
+```
+
+### while循环嵌套
+语法：
+```python
+while 外层条件:
+    while 内层条件:
+        循环体
+```
+例：
+```python
+i = 1
+while i < 10: 
+    j = 1
+    while j <= i:
+        print(f"{j}×{i}={i*j}", end="\t")
+        j += 1
+    print()
+    i += 1
+```
+
+用while循环嵌套改写，输出与上述for循环嵌套一致。  
+`for`循环与`while`循环也可互相嵌套，注意循环条件，不要写成死循环。
+
 # 字符串
 Python中字符串也有许多操作，像是取出单个字符，获取长度等。  
 ## 保留格式输出
@@ -408,3 +454,291 @@ print(path)
 ```
 C:\new\folder   #（\n 不换行）
 ```
+
+### 字符串检索函数
+#### `find()`函数
+返回子串 **第一次出现**的索引，未找到返回 `-1`。  
+**参数**：  
+`start`：搜索起始位置（可选）。    
+`end`：搜索结束位置（可选）。
+例：
+```python
+s = "hello world"
+print(s.find("world"))
+print(s.find("Python"))
+```
+输出：
+```
+6
+-1
+```
+`rfind()`函数   
+与`find()`函数类似，不过是从右边开始
+
+#### `index()`函数
+与 `find()` 类似，但未找到时会抛出 `ValueError`。
+**参数**：  
+`start`：搜索起始位置（可选）。    
+`end`：搜索结束位置（可选）。
+例：
+```python
+print(s.index("world"))
+print(s.index("Python"))
+```
+输出：
+```
+6
+ValueError
+```
+`rindex()`函数   
+与`index()`函数类似，不过是从右边开始
+
+#### `count()`函数
+用于统计字符串中子串出现的次数
+**参数**：  
+`start`：搜索起始位置（可选）。    
+`end`：搜索结束位置（可选）。
+例：
+```python
+s = "banana"
+print(s.count("a"))
+print(s.count("na"))
+```
+输出：
+```
+3
+2
+```
+
+### 字符串替换函数
+
+#### `replace()`函数
+将字符串中的 `old` 子串替换为 `new`。     
+语法：
+```python
+字符串.replace(old,new,count)
+```
+**参数**：
+`old`：需要替换的子串。    
+`new`：替换后的新子串。    
+`count`（可选）：最多替换次数（默认全部替换）。
+例：
+```python
+text = "I like apples, apples are tasty"
+new_text = text.replace("apples", "oranges")
+print(new_text) 
+
+print(text.replace("apples", "oranges", 1))```
+输出：
+```
+I like oranges, oranges are tasty
+I like oranges, apples are tasty #只替换第一个
+```
+
+### 字符串拆分函数
+#### `split()`函数
+将字符串按指定分隔符 `sep` 拆分成列表，默认按**空白字符**（空格、换行、制表符等）拆分。  
+语法：
+```python
+字符串.split(sep, maxsplit=)
+```
+**参数：**
+`sep`：分隔符（默认 `None`，表示按空白字符拆分）。   
+`maxsplit`：最大拆分次数（默认 `-1`，表示不限次数）。
+例：
+```python
+s = "Python Java C++ JavaScript"
+
+print(s.split())
+
+s2 = "apple,banana,orange"
+print(s2.split(","))
+
+print(s2.split(",", maxsplit=1))
+```
+输出：
+```
+输出: ['Python', 'Java', 'C++', 'JavaScript']
+输出: ['apple', 'banana', 'orange']
+输出: ['apple', 'banana,orange']
+
+```
+### 字符串组合函数
+#### `join()`函数
+用指定字符串作为分隔符，将可迭代对象（如列表、元组）中的元素连接成一个字符串。
+例：
+```python
+words = ["Python", "Java", "C++"]
+result = ", ".join(words)
+print(result)
+```
+  输出：
+```
+Python, Java, C++
+``` 
+
+### 字符串转化函数
+#### **1. `str.capitalize()
+将字符串的**第一个字母大写**，其余字母转为小写。
+例：
+```python
+s = "hello WORLD"
+print(s.capitalize())  # 输出: "Hello world"
+```
+
+#### **2. `str.title()`**
+将字符串中**每个单词的首字母大写**，其余字母转为小写。
+例：
+```python
+s = "python is AWESOME"
+print(s.title())  # 输出: "Python Is Awesome"
+```
+
+#### **3. `str.upper()`**
+将字符串中**所有字母转为大写**。
+例：
+```python
+s = "Hello Python"
+print(s.upper())  # 输出: "HELLO PYTHON"
+```
+
+#### **4. `str.lower()`**
+将字符串中**所有字母转为小写**。
+例：
+```python
+s = "HELLO World"
+print(s.lower())  # 输出: "hello world"
+```
+
+#### **5. `str.swapcase()`**
+**反转字符串中字母的大小写**（大写转小写，小写转大写）。
+例：
+```python
+s = "Hello PyThOn"
+print(s.swapcase())  # 输出: "hELLO pYtHoN"
+```
+
+### 字符串判断函数
+#### **1. `str.isdigit()`**
+
+检测字符串是否**只包含数字**（0-9）。  
+例：
+```python
+print("123".isdigit())    # True
+print("12a3".isdigit())   # False
+print("①".isdigit())      # True（Unicode数字）
+```
+
+#### **2. `str.isalpha()`**
+
+检测字符串是否**只包含字母或文字**（包括中文、日文等Unicode字母）。  
+例：
+```python
+print("Python".isalpha())  # True
+print("你好".isalpha())     # True
+print("a1".isalpha())      # False
+```
+
+#### **3. `str.isspace()`**
+
+检测字符串是否**只包含空白字符**（空格、`\t`、`\n`等）。  
+例：
+```python
+print("  ".isspace())     # True
+print("\t\n".isspace())   # True
+print(" a ".isspace())    # False
+```
+
+#### **4. `str.startswith(prefix)`**
+
+检查字符串是否以**指定子串开头**，返回 `True`/`False`。  
+例：
+```python
+s = "Hello World"
+print(s.startswith("Hello"))  # True
+print(s.startswith("World"))  # False
+```
+
+#### **5. `str.endswith(suffix)`**
+
+检查字符串是否以**指定子串结尾**，返回 `True`/`False`。  
+例：
+```python
+s = "example.txt"
+print(s.endswith(".txt"))    # True
+print(s.endswith(".jpg"))    # False
+```
+
+#### **6. `str.isalnum()`**
+
+检测字符串是否**只包含字母或数字**（中英文均可，无符号和空格）。  
+例：
+```python
+print("Python3".isalnum())   # True
+print("你好123".isalnum())    # True
+print("a@1".isalnum())       # False
+```
+
+### 字符串截取函数
+#### `lstrip()`函数
+移除字符串**左侧**指定的字符（默认移除空白符）。  
+**参数**：
+`chars`（可选）：指定要移除的字符集合，默认为空白符（空格、`\t`、`\n`等）。  
+例：
+```python
+s = "   Hello World   "
+print(s.lstrip())          # 输出: "Hello World   "（移除左侧空格）
+
+s2 = "===Title==="
+print(s2.lstrip("="))      # 输出: "Title==="（移除左侧等号）
+```
+
+#### `rstrip()`函数
+移除字符串**右侧**指定的字符（默认移除空白符）。  
+**参数**：
+`chars`（可选）：指定要移除的字符集合，默认为空白符（空格、`\t`、`\n`等）。  
+例：
+```python
+s = "   Hello World   "
+print(s.rstrip())          # 输出: "   Hello World"（移除右侧空格）
+
+s2 = "===Title==="
+print(s2.rstrip("="))      # 输出: "===Title"（移除右侧等号）
+```
+
+#### `strip()`函数
+移除字符串**两侧**指定的字符（默认移除空白符）。  
+**参数**：
+`chars`（可选）：指定要移除的字符集合，默认为空白符（空格、`\t`、`\n`等）。  
+例：
+```python
+s = "   Hello World   "
+print(s.strip())          # 输出: "Hello World"（移除右侧空格）
+
+s2 = "===Title==="
+print(s2.strip("="))      # 输出: "Title"（移除右侧等号）
+```
+
+### 字符串format格式化
+
+####  数字格式化
+```python
+pi=3.1415926
+print("保留两位小数: {:.2f}".format(pj))
+print("科学计数法: {:.2e}".format(1000))
+print("二进制: {:b}".format(5))
+print("十六进制: {:x}".format(255))
+print("百分比: {:.2%}".format(0.25))
+print("千位分隔符: {:,}".format(1000000))
+```
+输出如下：
+![](https://cdn.jsdelivr.net/gh/luojisama/pic_bed@main/img/202505291928875.png)
+#### 格式与对齐
+```python
+print("左对齐: {:<10}".format("left"))
+print("右对齐: {:>10}".format("right"))
+print("居中对齐: {:^10}".format("center"))
+print("填充符号: {:*^10}".format("center"))
+```
+输出如下：
+![](https://cdn.jsdelivr.net/gh/luojisama/pic_bed@main/img/202505291929121.png)
