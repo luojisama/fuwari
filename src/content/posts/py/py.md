@@ -10,8 +10,8 @@ category: 可能有用的教程
 draft: false
 ---
 
->我也正在学习python，一边学习一边编写本篇教程，希望对你能有一点帮助
->本文参考[简介 - Python教程 - 廖雪峰的官方网站](https://liaoxuefeng.com/books/python/introduction/index.html)结合自己所学整理结合
+>我也正在学习python，一边学习一边编写本篇教程，希望对你能有一点帮助。    
+>本文参考[简介 - Python教程 - 廖雪峰的官方网站](https://liaoxuefeng.com/books/python/introduction/index.html)结合自己所学整理结合。
 
 # 什么是Python
 
@@ -907,3 +907,33 @@ def person(name, age, *, city, job):
 在Python中定义函数，可以用必选参数、默认参数、可变参数、关键字参数和命名关键字参数，这5种参数都可以组合使用。但是请注意，参数定义的顺序必须是：必选参数、默认参数、可变参数、命名关键字参数和关键字参数。
 
 ## 递归函数
+在函数内部，可以调用其他函数。如果一个函数在内部调用自身本身，这个函数就是递归函数。   
+
+递归函数有两个条件：   
+`基准条件`：递归终止的条件。    
+`递归条件`：函数调用自身的条件。    
+
+递归函数的优点是定义简单，逻辑清晰。理论上，所有的递归函数都可以写成循环的方式，但循环的逻辑不如递归清晰。  
+例：
+```python
+def factorial(n):
+    # 基准条件
+    if n == 0 or n == 1:
+        return 1
+    # 递归条件
+    return n * factorial(n - 1)
+```
+每次递归调用都会在内存栈中创建一个新的栈帧（stack frame），保存当前函数的局部变量和返回地址。当递归深度过大时，可能导致栈溢出。
+
+### 尾递归
+尾递归是一种特殊的递归形式，其中递归调用是函数执行的最后一步操作（即函数返回时直接返回递归调用的结果，不再进行其他计算）。
+例：
+```python
+def factorial_tail(n, acc=1):
+    # 基准条件
+    if n == 0:
+        return acc
+    # 尾递归调用（最后一步且直接返回）
+    return factorial_tail(n - 1, acc * n)
+```
+`return factiter(n - 1, n * acc)`仅返回递归函数本身，`n - 1`和`n * acc`在函数调用前就会被计算，不影响函数调用。
