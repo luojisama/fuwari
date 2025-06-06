@@ -386,7 +386,7 @@ Python! #（省略结束，默认到末尾）
 Hlo yhn #（步长为2，隔字符取）
 ```
 
-## 字符串运算符
+## 字符串运算符与函数
 Python 提供了多种字符串运算符，用于拼接、重复、比较和成员检查等操作。以下是常用的字符串运算符及其用法：
 
 ### 字符串拼接  `+`
@@ -529,12 +529,16 @@ text = "I like apples, apples are tasty"
 new_text = text.replace("apples", "oranges")
 print(new_text) 
 
-print(text.replace("apples", "oranges", 1))```
+print(text.replace("apples", "oranges", 1))
+```
 输出：
+
 ```
 I like oranges, oranges are tasty
-I like oranges, apples are tasty #只替换第一个
+I like oranges, apples are tasty 
 ```
+
+只替换第一个
 
 ### 字符串拆分函数
 #### `split()`函数
@@ -937,3 +941,12 @@ def factorial_tail(n, acc=1):
     return factorial_tail(n - 1, acc * n)
 ```
 `return factiter(n - 1, n * acc)`仅返回递归函数本身，`n - 1`和`n * acc`在函数调用前就会被计算，不影响函数调用。
+
+# 高级特性
+掌握了Python的数据类型、语句和函数，基本上就可以编写出很多有用的程序了。  
+## 切片
+在前面字符串中提到过，Python没有单独用于字符串的切片，这个切片同样可用于`list`，`tuple`。  
+切片操作符`[起始:结束:步长]`
+## 迭代
+
+
