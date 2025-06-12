@@ -3,10 +3,8 @@ title: Python 零基础教程  长期更新
 published: 2025-05-28
 description: Python的零基础教程
 image: ""
-tags:
-  - 教程
-  - Python
-category: 可能有用的教程
+tags: ["基础教程","Python"]
+category: 基础教程
 draft: false
 ---
 
@@ -583,7 +581,7 @@ Python, Java, C++
 ``` 
 
 ### 字符串转化函数
-#### **1. `str.capitalize()
+#### **1. `str.capitalize()`**
 将字符串的**第一个字母大写**，其余字母转为小写。
 例：
 ```python
@@ -729,7 +727,7 @@ print(s2.strip("="))      # 输出: "Title"（移除右侧等号）
 ####  数字格式化
 ```python
 pi=3.1415926
-print("保留两位小数: {:.2f}".format(pj))
+print("保留两位小数: {:.2f}".format(p))
 print("科学计数法: {:.2e}".format(1000))
 print("二进制: {:b}".format(5))
 print("十六进制: {:x}".format(255))
@@ -948,5 +946,5 @@ def factorial_tail(n, acc=1):
 在前面字符串中提到过，Python没有单独用于字符串的切片，这个切片同样可用于`list`，`tuple`。  
 切片操作符`[起始:结束:步长]`
 ## 迭代
-
-
+如果给定一个`list`或`tuple`，我们可以通过`for`循环来遍历这个`list`或`tuple`，这种遍历我们称为迭代（Iteration）。   
+在Python中，迭代是通过`for ... in`来完成的，只要作用于一个可迭代对象，`for`循环就可以正常运行，而不需要太关心该对象究竟是`list`还是其他数据类型。
