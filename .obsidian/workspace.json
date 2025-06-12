@@ -8,7 +8,7 @@
         "type": "tabs",
         "children": [
           {
-            "id": "43ae18cf3039dd09",
+            "id": "5c22f5d470af0f6b",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -22,7 +22,7 @@
             }
           },
           {
-            "id": "5c22f5d470af0f6b",
+            "id": "7d5fb154b58361b4",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -182,17 +182,17 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "43ae18cf3039dd09",
+  "active": "5c22f5d470af0f6b",
   "lastOpenFiles": [
-    "Pasted image 20250612143156.png",
     "src/content/posts/py/py.md",
     "src/content/posts/音乐/乐理基础.md",
+    "Pasted image 20250529161927.png",
     "Pasted image 20250612112844.png",
+    "Pasted image 20250612143156.png",
     "src/content/posts/音乐/MyGO.jpg",
     "src/content/posts/乐理基础.md",
     "未命名.md",
     "src/content/posts/音乐",
-    "Pasted image 20250529161927.png",
     "README.md"
   ]
 }
