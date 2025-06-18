@@ -108,7 +108,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "src/content/posts/音乐/乐理基础.md",
+                "file": "src/content/posts/py/py.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -118,7 +118,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "乐理基础 的反向链接列表"
+              "title": "py 的反向链接列表"
             }
           },
           {
@@ -127,12 +127,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "src/content/posts/音乐/乐理基础.md",
+                "file": "src/content/posts/py/py.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "乐理基础 的出链列表"
+              "title": "py 的出链列表"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "src/content/posts/音乐/乐理基础.md",
+                "file": "src/content/posts/py/py.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "乐理基础 的大纲"
+              "title": "py 的大纲"
             }
           }
         ]
