@@ -35,7 +35,8 @@
               "title": "py"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -182,11 +183,11 @@
       "command-palette:打开命令面板": false
     }
   },
-  "active": "5c22f5d470af0f6b",
+  "active": "7d5fb154b58361b4",
   "lastOpenFiles": [
+    "src/content/posts/音乐/乐理基础.md",
     "Pasted image 20250619193513.png",
     "src/content/posts/py/py.md",
-    "src/content/posts/音乐/乐理基础.md",
     "Pasted image 20250529161927.png",
     "Pasted image 20250612112844.png",
     "Pasted image 20250612143156.png",
