@@ -9,7 +9,7 @@ draft: false
 ---
 
 >我也正在学习python，一边学习一边编写本篇教程，希望对你能有一点帮助。    
->本文参考[简介 - Python教程 - 廖雪峰的官方网站](https://liaoxuefeng.com/books/python/introduction/index.html)结合自己所学整理结合。
+>本文参考<a href="https://liaoxuefeng.com/books/python/introduction/index.html" target="_blank">Python教程 - 廖雪峰的官方网站</a>结合自己所学整理结合。
 
 # 什么是Python
 
@@ -803,6 +803,7 @@ b=["1","2","3","4","5","8","6","7"]
 | `sorted(b,reverse=True)` | 将列表按照大小降序        |
 | `b.sort`                 | 将列表按照大小升序（修改原列表） |
 | `sorted(b)`              | 将列表按照大小升序（创建新列表） |
+| `len(b)`                 | 统计列表元素个数         |
 #### 列表组合
 ```python
 a=["1","2","3"]
@@ -959,7 +960,7 @@ print(s1 | s2)
 set和dict的唯一区别仅在于没有存储对应的value，但是，set的原理和dict一样，所以，同样不可以放入可变对象，因为无法判断两个可变对象是否相等，也就无法保证set内部“不会有重复元素”。试试把list放入set，看看是否会报错。
 # 函数
 ## 调用函数
-Python的内置函数可在[内置函数 — Python 3.13.3 文档](https://docs.python.org/zh-cn/3.13/library/functions.html#abs)中查询，可在交互式命令行中使用`help(函数名)`查询使用方法。   
+Python的内置函数可在<a href="https://docs.python.org/zh-cn/3.13/library/functions.html#abs" target="_blank">内置函数 — Python 3.13.3 文档</a>中查询，可在交互式命令行中使用`help(函数名)`查询使用方法。   
 如`int`函数，可将任何数据类型转换为`整型`，如：
 ```python
 int("123")
@@ -1180,4 +1181,60 @@ Hlo yhn #（步长为2，隔字符取）
 ```
 ## 迭代
 如果给定一个`list`或`tuple`，我们可以通过`for`循环来遍历这个`list`或`tuple`，这种遍历我们称为迭代（Iteration）。   
-在Python中，迭代是通过`for ... in`来完成的，只要作用于一个可迭代对象，`for`循环就可以正常运行，只要是可迭代对象，无论有无下标，都可以迭代。不需要太关心该对象究竟是`list`还是其他数据类型。
+在Python中，迭代是通过`for ... in`来完成的，只要作用于一个可迭代对象，`for`循环就可以正常运行，只要是可迭代对象，无论有无下标，都可以迭代。不需要太关心该对象究竟是`list`还是其他数据类型。  
+如果要对`list`实现类似Java那样的下标循环怎么办？Python内置的`enumerate`函数可以把一个`list`变成索引-元素对，这样就可以在`for`循环中同时迭代索引和元素本身：
+```python
+for i, value in enumerate(['A', 'B', 'C']):
+     print(i, value)
+
+#输出
+0 A
+1 B
+2 C
+```
+## 列表生成式
+列表生成式即List Comprehensions，是Python内置的非常简单却强大的可以用来创建list的生成式。  
+如果要生成`[1x1, 2x2, 3x3, ..., 10x10]`这样的列表，方法一是循环：
+```python
+L = []
+for x in range(1, 11):
+    L.append(x * x)
+print(L)
+
+#输出
+[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+```
+方法二就是使用列表生成式：
+```python
+L=[x * x for x in range(1, 11)]
+print(L)
+
+#输出
+[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+```
+写列表生成式时，把要生成的元素`x * x`放到前面，后面跟`for`循环，就可以把list创建出来。如果需要，在for循环后面还可以加上if判断，这样我们就可以筛选出仅偶数的平方：
+```python
+L=[x * x for x in range(1, 11) if x % 2 == 0]
+print(L)
+
+#输出
+[4, 16, 36, 64, 100]
+```
+还可以使用两层循环，可以生成全排列：
+```python
+L=[m + n for m in 'ABC' for n in 'XYZ']
+print(L)
+
+#输出
+['AX', 'AY', 'AZ', 'BX', 'BY', 'BZ', 'CX', 'CY', 'CZ']
+```
+列表生成式可以使用两个变量：
+```python
+d = {'x': 'A', 'y': 'B', 'z': 'C' }
+[k + '=' + v for k, v in d.items()]
+['y=B', 'x=A', 'z=C']
+```
+### 列表生成式中的if...else
+在列表生成式中，使用`if`判断时，不能直接加上else
+
+
