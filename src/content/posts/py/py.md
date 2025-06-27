@@ -950,12 +950,16 @@ set可以看成数学意义上的无序和无重复元素的集合，因此，�
 ```python
 s1 = {1, 2, 3}
 s2 = {2, 3, 4}
-print(s1 & s2)
-print(s1 | s2)
+print(s1 & s2) #交集
+print(s1 | s2) #并集
+print(s1 - s2) #差集
+print(s1 ^ s2) #对称差分集
 
 #输出
 {2, 3}
 {1, 2, 3, 4}
+{1}
+{1, 4}
 ```
 set和dict的唯一区别仅在于没有存储对应的value，但是，set的原理和dict一样，所以，同样不可以放入可变对象，因为无法判断两个可变对象是否相等，也就无法保证set内部“不会有重复元素”。试试把list放入set，看看是否会报错。
 # 函数
@@ -1235,6 +1239,139 @@ d = {'x': 'A', 'y': 'B', 'z': 'C' }
 ['y=B', 'x=A', 'z=C']
 ```
 ### 列表生成式中的if...else
-在列表生成式中，使用`if`判断时，不能直接加上else
+在列表生成式中，使用`if`判断时，不能直接加上else。语法为：   
+`[<真时值> if <条件> else <假时值> for <元素> in <可迭代对象>]`
+示例如下：
+```python
+[x if x % 2 == 0 else -x for x in range(1,12)]
+
+#输出
+[-1, 2, -3, 4, -5, 6, -7, 8, -9, 10, -11]
+```
+`for`前面的部分是一个表达式，它必须根据`x`计算出一个结果。因此，考察表达式：`x if x % 2 == 0`，它无法根据`x`计算出结果，因为缺少`else`，必须加上`else`
+
+## 生成器
+Python中，一边循环一边计算的机制，称为生成器：generator。
+
+要创建一个generator，有很多种方法。第一种方法很简单，只要把一个列表生成式的`[]`改成`()`，就创建了一个generator：
+```python
+L = [x * x for x in range(10)]
+print(L)
+
+输出
+[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+
+g = (x * x for x in range(10))
+print(g)
+
+#输出
+<generator object <genexpr> at 0x00000245CC851F20>
+```
+创建`L`和`g`的区别仅在于最外层的`[]`和`()`，`L`是一个list，而`g`是一个generator。  
+如果要一个一个打印出来，可以通过`next()`函数获得generator的下一个返回值：
+```python
+g = (x * x for x in range(10))
+print(next(g),next(g),next(g),next(g),next(g))
+
+#输出
+0 1 4 9 16
+```
+generator保存的是算法，每次调用`next(g)`，就计算出`g`的下一个元素的值，直到计算到最后一个元素，没有更多的元素时，抛出`StopIteration`的错误。  
+当然，这种不断调用`next(g)`实在是太变态了，正确的方法是使用`for`循环，因为generator也是可迭代对象。所以，我们创建了一个generator后，基本上永远不会调用`next()`，而是通过`for`循环来迭代它，并且不需要关心`StopIteration`的错误。  
+
+generator非常强大。如果推算的算法比较复杂，用类似列表生成式的`for`循环无法实现的时候，还可以用函数来实现。  
+比如`斐波拉契数列（Fibonacci）`，除第一个和第二个数外，任意一个数都可由前两个数相加得到，用列表生成式实现不出来，但是用函数实现就很简单：
+```python
+def fib(max):
+    n, a, b = 0, 0, 1
+    while n < max:
+        print(b)
+        a, b = b, a + b
+        n = n + 1
+    return 'done'
+```
+仔细观察，可以看出，`fib`函数实际上是定义了斐波拉契数列的推算规则，可以从第一个元素开始，推算出后续任意的元素，这种逻辑其实非常类似generator。
+
+也就是说，上面的函数和generator仅一步之遥。要把`fib`函数变成generator函数，只需要把`print(b)`改为`yield b`就可以了：
+```python
+def fib(max):
+    n, a, b = 0, 0, 1
+    while n < max:
+        yield b
+        a, b = b, a + b
+        n = n + 1
+    return 'done'
+```
+这就是定义generator的另一种方法。如果一个函数定义中包含`yield`关键字，那么这个函数就不再是一个普通函数，而是一个generator函数，调用一个generator函数将返回一个generator。
+
+生成器函数是 Python 中一种特殊的函数，它使用 `yield` 语句而不是 `return` 来返回值，能够按需生成值（惰性求值），非常适合处理大数据流或无限序列。
+## 迭代器
+可以直接作用于`for`循环的数据类型有以下几种：  
+一类是集合数据类型，如`list`、`tuple`、`dict`、`set`、`str`等；  
+一类是`generator`，包括生成器和带`yield`的generator function。  
+
+这些可以直接作用于`for`循环的对象统称为可迭代对象：`Iterable`。  
+可以使用`isinstance()`判断一个对象是否是`Iterable`对象。  
+
+而生成器不但可以作用于`for`循环，还可以被`next()`函数不断调用并返回下一个值，直到最后抛出`StopIteration`错误表示无法继续返回下一个值了。  
+可以被`next()`函数调用并不断返回下一个值的对象称为迭代器：`Iterator`。  
+可以使用`isinstance()`判断一个对象是否是`Iterator`对象。  
+
+生成器都是`Iterator`对象，但`list`、`dict`、`str`虽然是`Iterable`，却不是`Iterator`。
+把`list`、`dict`、`str`等`Iterable`变成`Iterator`可以使用`iter()`函数：
+```python
+print(isinstance(iter([]), Iterator))
+
+#输出
+True
+```
+Python的`Iterator`对象表示的是一个数据流，`Iterator`对象可以被`next()`函数调用并不断返回下一个数据，直到没有数据时抛出`StopIteration`错误。可以把这个数据流看做是一个有序序列，但我们却不能提前知道序列的长度，只能不断通过`next()`函数实现按需计算下一个数据，所以`Iterator`的计算是惰性的，只有在需要返回下一个数据时它才会计算。  
+
+`Iterator`甚至可以表示一个无限大的数据流，例如全体自然数。而使用list是永远不可能存储全体自然数的。
+
+# 函数式编程
+函数是Python内建支持的一种封装，我们通过把大段代码拆成函数，通过一层一层的函数调用，就可以把复杂任务分解成简单的任务，这种分解可以称之为面向过程的程序设计。函数就是面向过程的程序设计的基本单元。
+
+而函数式编程（请注意多了一个“式”字）——Functional Programming，虽然也可以归结到面向过程的程序设计，但其思想更接近数学计算。
+## 高阶函数
+### 高级函数相关
+#### 变量是可以指向函数
+以`type`为例：
+```python
+a = [1,2,3,4,5]
+b = type
+print(b(a))
+
+#输出
+<class 'list'>
+```
+#### 函数名也可以是变量
+仍以`type`为例：
+```python
+type = "str"
+print(type(1))
+
+#输出报错
+print(type(1))
+	    ^^^^^^^
+TypeError: 'str' object is not callable
+```
+>当然实际编程中绝对不能这样   
+#### 传入函数
+既然变量可以指向函数，函数的参数能接收变量，那么一个函数就可以接收另一个函数作为参数，这种函数就称之为高阶函数。
+```python
+def add(x, y, f):
+    return f(x) + f(y)
+
+print(add(-5, 6, abs))
+
+#输出
+11
+```
+
+# 模块
+
+
+
 
 
