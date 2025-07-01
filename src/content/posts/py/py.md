@@ -789,7 +789,7 @@ True
 0
 2
 ```
-### 一些常用函数
+### 一些常用函数<a id="sorted"></a>
 ```python
 a=["1","2","3"]
 b=["1","2","3","4","5","8","6","7"]
@@ -1387,9 +1387,83 @@ print(list(b))
 ```
 `map()`作为高阶函数，事实上它把运算规则抽象了，因此，我们不但可以计算简单的f(x)=2x，还可以计算任意复杂的函数。
 #### reduce
-`reduce`把一个函数作用在一个序列`[x1, x2, x3, ...]`上，这个函数必须接收两个参数，`reduce`把结果继续和序列的下一个元素做累积计算。
+`reduce`函数的第一个参数是一个**需要接受两个参数的函数**（通常称为二元操作函数或归约函数）。这个函数决定了如何将序列中的元素逐步合并为单个结果。
+以列表**累乘运算**为例：
+```python
+from functools import reduce
+
+a = [1, 2, 3, 4, 5]
+def b(x,y):
+    return x * y
+  
+product = reduce(b , a)
+print(product)
+
+#输出
+120
+```
+### filter
+Python内建的`filter()`函数用于过滤序列。  
+和`map()`类似，`filter()`也接收一个函数和一个序列。和`map()`不同的是，`filter()`把传入的函数依次作用于每个元素，然后根据返回值是`True`还是`False`决定保留还是丢弃该元素。
+
+`filter()`这个高阶函数，关键在于正确实现一个“筛选”函数。
+以`埃氏筛`求质数为例：
+```python
+def _odd_iter():
+    n = 1
+    while True:
+        n = n + 2
+        yield n
+#运用生成器创建从3开始的无限序列
+
+def _not_divisible(n):
+    return lambda x: x % n > 0
+#定义一个筛选函数
+
+def primes():
+    yield 2
+    it = _odd_iter() # 初始序列
+    while True:
+        n = next(it) # 返回序列的第一个数
+        yield n
+        it = filter(_not_divisible(n), it) # 构造新序列
+#定义一个新的生成器，不断返回下一个函数
+
+# 打印1000以内的素数:
+L=[]
+for n in primes():
+    if n < 100:
+        L.append(n)
+    else:
+        break
+print(L)
 
 
+#输出
+[2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+```
+### sorted
+在列表中的使用：[列表](#sorted)   
+同时`sorted`也是一个高阶函数。
+基本语法：
+```python
+sorted(iterable, key=None, reverse=False)
+```
+- **iterable**: 需要排序的可迭代对象（如列表、元组、字符串等）
+- **key**: 排序依据的函数（可选）
+- **reverse**: 是否降序排序（默认为False，即升序）
+
+`key`参数允许你指定一个函数来自定义排序规则，例如按绝对值大小排序：
+```python
+a=[36, 5, -12, 9, -21]
+b=sorted(a, key=abs)
+print(b)
+
+#输出
+[5, 9, -12, -21, 36]
+```
+## 返回函数
+高阶函数除了可以接受函数作为参数外，还可以把函数作为结果值返回。
 
 # 模块
 
