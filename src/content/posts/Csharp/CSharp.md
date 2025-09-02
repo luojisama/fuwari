@@ -21,7 +21,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 //using使用
 namespace demo01
     //命名空间
@@ -38,6 +37,7 @@ namespace demo01
 }
 
 ```
+代码写在主函数中。
 # 数据类型
 ## 整数
 `byte`，1个字节。   
@@ -45,14 +45,35 @@ namespace demo01
 `int`，4个字节。   
 `long`，8个字节，使用时要在值后用`L`标识。   
 ## 浮点数
-`float`，单精度小数，精确到小数点后7位。   
-`double`，双精度小数，精确到小数点后15-16位。  
+`float`，4字节，单精度小数，精确到小数点后7位。   
+`double`，8字节，双精度小数，精确到小数点后15-16位。  
 ## 字符
 `char`，存放单个字符，使用`''`标识。   
 `string`，字符串，使用`""`标识。   
 ## 布尔值
 `bool`，值为true或false，用于逻辑判断。
-
+## 数据类型转换
+### 方法1
+基本语法：新变量 = 目标数据类型.parse(原变量)
+例：
+```csharp
+string a = "123";
+int b;
+b = int.Parse(a);
+Console.WriteLine(b is int);
+```
+输出如下：
+```csharp
+True
+```
+### 方法2
+```csharp
+int a = 10;
+byte b = 0;
+a = b;        //小转大自动转
+b = (byte)a;  //大转小强制转
+```
+强制转换会导致数据丢失。
 # 变量
 变量名不可重复
 ## 变量命名：
@@ -89,3 +110,37 @@ namespace demo01
 逻辑与（and）`&&`   
 逻辑或（or）`||`    
 逻辑非（not）`!`
+
+## 运算符优先级
+与Python相同，最高是`()`，最低是`=`
+
+## is关键字
+用于判断数据类型，返回的结果是bool类型。
+例：
+```csharp
+string str = "曼波";
+bool flag = str is string;
+Console.WriteLine(flag);
+```
+输出如下：
+```csharp
+True
+```
+
+## 三元表达式
+基本语法：条件 ? 结果1:结果2    
+`?`表示询问条件。    
+`:`表示结果，返回结果的数据类型由用户决定。
+例：
+```csharp
+int A = 10,A = 5,C = 1;
+string result = A > C ? "A大于C" : "A小于C";
+Console.WriteLine(result);
+```
+输出如下：
+```csharp
+A大于C
+```
+与Python中的if选择结构类似。
+
+# 
