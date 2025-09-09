@@ -13,7 +13,7 @@ draft: false
 # 什么是C# 
 C#（读作 "C Sharp"）是一种由微软开发的现代化、通用型、面向对象的编程语言。它最初由 Anders Hejlsberg 领导开发，并于 2000 年发布，作为 .NET 平台的核心语言之一。
 
-在Visual Studio中，选择~C#，Windows，控制台·创建项目会在`Program.cs`中默认生成如下代码段：
+在Visual Studio中，选择C#，Windows，控制台·创建项目会在`Program.cs`中默认生成如下代码段：
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -133,7 +133,7 @@ Console.WriteLine(Age);
 与Python类似，C#中运算符优先级最高是`()`，最低是`=`
 
 ## is关键字
-用于判断数据类型，返回的结果是bool类型。
+用于判断数据类型，返回的结果是bool类型。   
 例：
 ```csharp
 string str = "曼波";
@@ -145,7 +145,7 @@ Console.WriteLine(flag);
 True
 ```
 ## 三元表达式
-与Python中的if选择类似。
+与Python中的if选择类似。  
 基本语法：条件 ? 结果1:结果2    
 `?`表示询问条件。    
 `:`表示结果，返回结果的数据类型由用户决定。   
@@ -160,7 +160,8 @@ Console.WriteLine(result);
 A大于C
 ```
 # 选择结构
-if选择结构，基本语法如下：
+## if选择结构
+基本语法如下：
 ```csharp
 //单分支
 if (条件) 
@@ -179,5 +180,77 @@ else if (条件2)
 {条件2为true时执行}
 else
 {条件为false时执行}
-...
+......
+```
+例：
+```csharp
+Console.WriteLine("请输入成绩");
+string s = Console.ReadLine();
+int score = int.Parse(s);
+if (score >= 90)
+{
+    Console.WriteLine("优秀");
+}
+else if (score >= 80)
+{
+    Console.WriteLine("良好");
+}
+else if (score >= 70)
+{
+    Console.WriteLine("中等");
+}
+else if (score >= 60)
+{
+    Console.WriteLine("及格");
+}
+else
+{
+    Console.WriteLine("不及格");
+}
+```
+
+### if嵌套
+与python相似，在if的执行条件中加入一个新的if结构，就是if嵌套。
+例：
+```csharp
+Console.WriteLine("请输入一个数");
+string a = Console.ReadLine();
+int A = int.Parse(a);
+
+if (A < 50)
+{
+    if (A % 3 == 0)
+    {
+	    Console.WriteLine("可以被3整除");
+	}
+    else
+    {
+	    Console.WriteLine("不可以被3整除");
+	}
+}
+else
+{
+    if (A % 5 == 0)
+    {
+	    Console.WriteLine("可以被5整除");
+	}
+    else
+    {
+	    Console.WriteLine("不可以被5整除");
+    }
+}
+```
+## switch选择结构
+基本语法：
+```csharp
+switch (表达式)
+
+{
+case 表达式1:
+	语句1;
+	break;
+case 表达式2:
+	语句2;
+	break;
+}
 ```
