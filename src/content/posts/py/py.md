@@ -218,6 +218,43 @@ else:
 多分支时`else`可省略不写。   
 选择结构是 Python 流程控制的基础，广泛用于数据过滤、用户交互等场景。
 
+## match语句
+提供结构化的**模式匹配**（Structural Pattern Matching），类似于其他语言的 `switch`，但功能更强大。
+基本语法如下：
+```python
+match 表达式:
+    case 模式1:
+        # 处理逻辑
+    case 模式2 if 条件:
+        # 带条件的匹配
+    case _:
+        # 通配符，匹配所有其他情况
+```
+例：
+```python
+def animal_sound(animal: str) -> str:
+    match animal:
+        case "dog":
+            return "汪汪 🐶"
+        case "cat":
+            return "喵喵 🐱"
+        case "bird":
+            return "啾啾 🐦"
+        case _:
+            return "未知动物叫声"
+
+# 测试
+for a in ["dog", "cat", "bird", "tiger"]:
+    print(f"{a} -> {animal_sound(a)}")
+```
+输出如下：
+```python
+dog -> 汪汪 🐶
+cat -> 喵喵 🐱
+bird -> 啾啾 🐦
+tiger -> 未知动物叫声
+```
+
 # 循环
 在Python中有两种循环方式，分别是`while`与`for`
 
