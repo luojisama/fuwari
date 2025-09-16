@@ -113,6 +113,7 @@ Console.WriteLine(Age);
 # 运算符
 ## 数学运算符
 `+`，`-`，`*`，`/`，`%`    
+自增/自减：++/--，相当于+=/-=
 整数相除时结果自动取整。
 ## 关系运算符
  `==` 等于  
@@ -208,38 +209,6 @@ else
     Console.WriteLine("不及格");
 }
 ```
-
-### if嵌套
-与python相似，在if的执行条件中加入一个新的if结构，就是if嵌套。
-例：
-```csharp
-Console.WriteLine("请输入一个数");
-string a = Console.ReadLine();
-int A = int.Parse(a);
-
-if (A < 50)
-{
-    if (A % 3 == 0)
-    {
-	    Console.WriteLine("可以被3整除");
-	}
-    else
-    {
-	    Console.WriteLine("不可以被3整除");
-	}
-}
-else
-{
-    if (A % 5 == 0)
-    {
-	    Console.WriteLine("可以被5整除");
-	}
-    else
-    {
-	    Console.WriteLine("不可以被5整除");
-    }
-}
-```
 ## switch选择结构
 基本语法：
 ```csharp
@@ -258,3 +227,69 @@ switch中，代码没先后顺序之分。
 在所有case值不满足的情况下才会执行default。   
 case是明确且不会发生变化的值。   
 支持整型，浮点，布尔，字符，枚举等数据类型。   
+
+`switch`与`if`可以互相嵌套使用：
+```csharp
+ Console.WriteLine("请输入1-31的数字");
+string str = Console.ReadLine();
+int day = int.Parse(str);
+
+if (day <= 31 && day > 0)
+{
+    int week = (day - 1) / 7 +1 ;
+    day = day % 7;
+    switch (day)
+    {
+        case 1:
+            Console.WriteLine($"第{week}周的周一");
+            break;
+        case 2:
+            Console.WriteLine($"第{week}周的周二");
+            break;
+        case 3:
+            Console.WriteLine($"第{week}周的周三");
+            break;
+        case 4:
+            Console.WriteLine($"第{week}周的周四");
+            break;
+        case 5:
+            Console.WriteLine($"第{week}周的周五");
+            break;
+        case 6:
+            Console.WriteLine($"第{week}周的周六");
+            break;
+        case 0:
+            Console.WriteLine($"第{week}周的周日");
+            break;
+    }
+}
+else
+{
+    Console.WriteLine("输入错误");
+}
+```
+
+# 循环结构
+C#中有三种循环结构：`while`，`do-while`，`for`
+
+## while循环
+基本语法：
+```csharp
+循环变量
+while (条件)
+{
+    代码串;
+    循环迭代语句;
+}
+```
+while循环缺少迭代语句会进入死循环。   
+例：
+```csharp
+//循环输出1-10
+int a = 1;
+while (a<11)
+{
+    Console.WriteLine(a);
+    a++;
+}
+```
