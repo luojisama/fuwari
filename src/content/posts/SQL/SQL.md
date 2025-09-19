@@ -45,7 +45,7 @@ net stop mssqlserver
 ## 创建
 创建数据库:
 ```sql
-creat database 数据库名;
+CREATE DATABASE 数据库名;
 ```
 
 ## 键
@@ -56,4 +56,25 @@ creat database 数据库名;
 关系数据库实际上还允许通过多个字段唯一标识记录，即两个或更多的字段都设置为主键，这种主键被称为联合主键。  
 对于联合主键，允许一列有重复，只要不是所有主键列都重复即可。
 ## 外键
-外键并不是通过列名实现的，而是通过定义外键约束实现的，
+外键并不是通过列名实现的，而是通过定义外键约束实现的，语法如下：
+```sql
+    CONSTRAINT FK_从表名_主表名 FOREIGN KEY (列名) REFERENCES 主表(列名)
+```
+例：
+```sql
+CREATE TABLE dept(
+		dep_no int PRIMARY KEY,
+		dep_name VARCHAR(20) NOT NULL,
+		dep_loc VARCHAR(20)
+);
+
+CREATE TABLE emp (
+    emp_no VARCHAR(20) PRIMARY KEY,
+    emp_name VARCHAR(20) NOT NULL,
+    emp_sex CHAR(2) NOT NULL DEFAULT '女',
+    emp_age INT NOT NULL,
+    dep_no INT,
+    CONSTRAINT FK_emp_dept FOREIGN KEY (dep_no) REFERENCES dept(dep_no)
+);
+```
+其中`FK_emp_dept`可以为任意，但为了区分一般采用`FK_xx_xx`的命名格式，`FOREIGN KEY (dep_no)`指定了`dep_no`为外键，`REFERENCES dept(dep_no)`指定了这个外键将关联到`dept`列表的`dep_no`列。
