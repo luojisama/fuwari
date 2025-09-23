@@ -159,5 +159,33 @@ SELECT * FROM stu WHERE s_sex = '男' and s_class = '301'
 > 使用=判断等于
 > 使用<>判断不等与
 > 使用LIKE判断相似，`%`表示任意字符，`_`表示单个字符
-> 
+> BETWEEN...AND表示在...之间
+> IN表示在集合内
+## 投影查询
+```sql
+SELECT s_id,s_name from stu
+```
+投影查询只返回查询的列，同样可以使用`WHERE`。
+## 排序
+```sql
+SELECT s_id,s_age FROM stu ORDER BY s_age
+```
+`ORDER BY`默认为升序(ASC)，如需使用降序(DESC)，须在后加`DESC`。
+## 聚合函数
+SQLSERVER中有如下聚合函数：
 
+| 函数名   | 说明      |
+| ----- | ------- |
+| COUNT | 统计非空行数量 |
+| SUM   | 求和      |
+| AVG   | 求平均值    |
+| MAX   | 取最大值    |
+| MIN   | 取最小值    |
+```sql
+SELECT COUNT(*) AS 人数 FROM stu
+```
+## 分组
+```sql
+SELECT AVG(s_age) AS 平均年龄 FROM stu GROUP BY s_calss
+```
+常常与聚合函数搭配一起使用

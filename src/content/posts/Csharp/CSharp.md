@@ -272,10 +272,12 @@ else
 # 循环结构
 C#中有三种循环结构：`while`，`do-while`，`for`
 
-## while循环
+## while()
+`先判断后执行`
+根据条件可以判断执行的次数。
 基本语法：
 ```csharp
-循环变量
+循环变量;
 while (条件)
 {
     代码串;
@@ -293,3 +295,27 @@ while (a<11)
     a++;
 }
 ```
+## do{ } while()
+`先执行后判断`
+基本语法：
+```csharp
+循环变量;
+do 
+{
+    代码串;
+    循环迭代语句;
+}
+while (条件);
+```
+例：
+```csharp
+int a = 1;
+do 
+{
+    Console.WriteLine(a);
+    a += 2;
+}
+while (a <= 30);
+```
+
+## for 
