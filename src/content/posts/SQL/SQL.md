@@ -123,7 +123,7 @@ emp_age INT CHECK (Age >= 18)
 ALTER TABLE emp 
 ADD CONSTRAINT CHK_emp_age CHEAK (age >= 18)
 ```
-末尾添加`CHEAK ()`可创建自定义约束，括号中可自定义约束。
+末尾添加`CHEAK ()`可创建自定义约束，括号中可自定义，以限制输入的值。
 # 查询
 假定有一个stu表，其中的值如下：
 
@@ -189,3 +189,28 @@ SELECT COUNT(*) AS 人数 FROM stu
 SELECT AVG(s_age) AS 平均年龄 FROM stu GROUP BY s_calss
 ```
 常常与聚合函数搭配一起使用
+
+# 修改表结构
+## 重命名
+```sql
+EXCE SP_RENAME '旧表名','新表名'
+
+EXCE SP_RENAME '表名.旧列名','新列名'
+```
+## 添加
+```sql
+ALTER TABLE 表名 ADD 列名 数据类型 约束
+```
+## 修改
+```sql
+ALTER TABLE 表名 ALTER COLUMN 列名 新数据类型
+```
+## 删除
+```sql
+ALTER TABLE 表名 DROP COLUMN 列名
+
+DROP TABLE 表名
+
+TRUNCATE TABLE 表名
+--重构表，删除表结构与数据，然后重构表
+```
