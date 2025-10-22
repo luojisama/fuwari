@@ -52,7 +52,7 @@ CREATE DATABASE 数据库名;
 
 ```sql
 CREATE TABLE dept(
-		dep_no int PRIMARY KEY,
+		dep_no int PRIMARY KEY IDENTITY(1,1),
 		dep_name VARCHAR(20) NOT NULL,
 		dep_loc VARCHAR(20) UNIQUE
 );
@@ -124,6 +124,14 @@ ALTER TABLE emp
 ADD CONSTRAINT CHK_emp_age CHEAK (age >= 18)
 ```
 末尾添加`CHEAK ()`可创建自定义约束，括号中可自定义，以限制输入的值。
+
+## 自增
+```sql
+	dep_no int PRIMARY KEY IDENTITY(1,1)
+	
+	--第一个为起始值，第二个为增加值
+```
+自增约束必须在创建时设置，无法在后续添加。
 # 查询
 假定有一个stu表，其中的值如下：
 
@@ -135,6 +143,7 @@ ADD CONSTRAINT CHK_emp_age CHEAK (age >= 18)
 | 4    | 赵六     | 男     | 14    | 202     |
 
 ## 基本查询
+查询是从数据库中将符合条件的数据检索出来。查询出来的表是虚拟表，数据存储在数据表中。
 ```sql
 SELECT * FROM stu;
 ```
@@ -145,6 +154,11 @@ SELECT * FROM stu;
 SELECT 10+20
 ```
 执行可以得到表达式的结果。
+## 投影查询
+```sql
+SELECT s_id,s_name from stu
+```
+投影查询只返回查询的列，同样可以使用`WHERE`。
 ## 条件查询
 ```sql
 SELECT * FROM stu WHERE s_sex = '男'
@@ -155,22 +169,23 @@ SELECT * FROM stu WHERE s_sex = '男'
 SELECT * FROM stu WHERE s_sex = '男' and s_class = '301'
 ```
 常用的条件表达式：
-> 使用>,>=,<,<=判断大小
-> 使用=判断等于
-> 使用<>判断不等与
-> 使用LIKE判断相似，`%`表示任意字符，`_`表示单个字符
-> BETWEEN...AND表示在...之间
-> IN表示在集合内
-## 投影查询
+> 使用`>`,`>=`,`<`,`<=`判断大小
+> 使用`=`判断等于
+> 使用`<>`判断不等与
+> 使用`LIKE''`判断相似，`%`表示任意字符，`_`表示单个字符
+> `BETWEEN...AND...`表示在...之间
+> `IN()`表示在集合内
+## 去重查询
+在一些非唯一限制的值中，有时查询需要去重，可以使用`DISTINCT`。
+
 ```sql
-SELECT s_id,s_name from stu
+SELECT DISTINCT s_age FROM stu
 ```
-投影查询只返回查询的列，同样可以使用`WHERE`。
 ## 排序
 ```sql
 SELECT s_id,s_age FROM stu ORDER BY s_age
 ```
-`ORDER BY`默认为升序(ASC)，如需使用降序(DESC)，须在后加`DESC`。
+`ORDER BY`默认为升序(`ASC`)，如需使用降序(`DESC`)，须在后指定。
 ## 聚合函数
 SQLSERVER中有如下聚合函数：
 
@@ -190,7 +205,54 @@ SELECT AVG(s_age) AS 平均年龄 FROM stu GROUP BY s_calss
 ```
 常常与聚合函数搭配一起使用
 
-# 修改表结构
+# 表数据修改
+## SQL分类
+### DDL
+数据定义语言
+create alter drop truncate
+### DML
+数据操作语言
+insert update delete
+### DQL
+数据查询语言
+select
+### DCL
+数据控制语言
+grant revoke
+## 运算符
+### 算数运算符
+`+` `-` `/` `*` `%`
+### 赋值运算符
+`=`
+### 逻辑运算符
+`and` `or` `not`
+### 比较运算符
+`=` `>` `>=` `<` `<=` `<>`
+
+## 增
+```sql
+ INSERT INTO 表名(列名) VALUES(值)
+```
+列名不填默认所有列。
+多行插入：
+```sql
+ INSERT INTO 表名(列名) 
+ VALUES(值1)
+	   (值2)
+	   (值3)
+```
+## 删
+```sql
+DELETE FROM 表名 WHERE 条件
+```
+
+## 改
+```sql
+UPDATE 表名 SET 字段=值... WHERE 条件
+```
+条件为空默认为表中所有数据
+
+# 表结构修改
 ## 重命名
 ```sql
 EXCE SP_RENAME '旧表名','新表名'

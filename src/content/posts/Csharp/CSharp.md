@@ -335,3 +335,36 @@ for (int a = 1; a < 6; a++)
 ```
 代码执行顺序如下：`int a =1` -->`a < 6`-->`Console.WriteLine($"第{a}次"+a)`-->`a++`   
 当满足条件时执行代码块，随后执行迭代语句，直到条件不满足为止。
+# 数组
+数组(arrays)：结构化数据类型，存放的是类型相同的数据。  
+数组中长度固定，数据类型相同。
+## 声明方法
+```csharp
+  int[] a;
+  //声明数组
+  a = new int[5];
+  //给已有数组固定长度
+  a = new int[5] { 1, 2, 3, 4, 5 };
+  //为数组赋值
+  
+  int[] b = new int[5] { 5, 4, 3, 2, 1 };
+```
+## 访问数组
+与python相同，通过下标（index）访问。
+```csharp
+  Console.WriteLine(b[3]);
+```
+输出的值应该为：
+```chsarp
+2
+```
+
+## 循环遍历
+在C#中，数组也可以使用循环来遍历。
+```csharp
+for (int i = 0; i <= b.Length - 1; i++)
+{
+    Console.WriteLine(b[i]);
+}
+```
+在代码中，length用来获取数组的长度。
