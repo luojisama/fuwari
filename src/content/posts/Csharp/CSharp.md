@@ -50,6 +50,7 @@ namespace demo01
 ## 字符
 `char`，存放单个字符，使用`''`标识。   
 `string`，字符串，使用`""`标识。   
+判断两个字符是否相等时推荐使用`equals`。
 ## 布尔值
 `bool`，值为true或false，用于逻辑判断。
 ## 数据类型转换
@@ -367,4 +368,34 @@ for (int i = 0; i <= b.Length - 1; i++)
     Console.WriteLine(b[i]);
 }
 ```
-在代码中，length用来获取数组的长度。
+在代码中，length用来获取长度，这是一个属性，对所有变量都适用，使用`Array.sort(数组名)`来对数组排序。
+# 字符串
+字符串string是一个自读的char类型数组。   
+在C#中，字符串的操作方式与Python类型。
+```csharp
+string str = "    rgdzsfJWBHKrfg    ";
+```
+## 转大小写
+```csharp
+Console.WriteLine(str.ToUpper());
+Console.WriteLine(str.ToLower());
+```
+## 检查开头结尾
+返回布尔值。
+```csharp
+Console.WriteLine(str.StartsWith("r"));
+Console.WriteLine(str.EndsWith("g"));
+```
+## 去除空字符串
+```csharp
+Console.WriteLine(str.Trim());
+Console.WriteLine(str.TrimEnd());
+Console.WriteLine(str.TrimStart());
+```
+## 查找
+返回第一个字符下标。     
+未找到时返回`-1`。   
+```csharp
+Console.WriteLine(str.IndexOf("g"));
+Console.WriteLine(str.LastIndexOf("r"));
+```
