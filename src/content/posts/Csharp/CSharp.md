@@ -399,3 +399,17 @@ Console.WriteLine(str.TrimStart());
 Console.WriteLine(str.IndexOf("g"));
 Console.WriteLine(str.LastIndexOf("r"));
 ```
+## 检查存在
+```csharp
+Console.WriteLine(str.Contains("f"));
+```
+## 字符串拼接
+```csharp
+Console.WriteLine(string.Concat(str,"哦马吉里曼波"));
+```
+使用时需要使用`string`引用
+## 忽略大小写
+```csharp
+string str2 = "rgdzsfJWB@HKrfg";
+Console.WriteLine(str2.Equals("RGdzsfJWB@HKrFG",StringComparison.OrdinalIgnoreCase));
+```
