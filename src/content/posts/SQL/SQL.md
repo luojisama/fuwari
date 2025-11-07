@@ -175,6 +175,7 @@ SELECT * FROM stu WHERE s_sex = '男' and s_class = '301'
 > 使用`LIKE''`判断相似，`%`表示任意字符，`_`表示单个字符
 > `BETWEEN...AND...`表示在...之间
 > `IN()`表示在集合内
+> `IS NULL`查询空值
 ## 去重查询
 在一些非唯一限制的值中，有时查询需要去重，可以使用`DISTINCT`。
 
@@ -203,8 +204,16 @@ SELECT COUNT(*) AS 人数 FROM stu
 ```sql
 SELECT AVG(s_age) AS 平均年龄 FROM stu GROUP BY s_calss
 ```
-常常与聚合函数搭配一起使用
-
+常常与聚合函数搭配一起使用。
+## 筛选
+```sql
+SELECT s_sex,count(*) FROM stu GROUP BY s_sex HAVING>1
+```
+## 分页
+```sql
+SELECT *FROM stu ORDER BY stu_id OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+```
+`OFFSET 0 ROWS`表示跳过0行，`FETCH NEXT 5 RWOS ONLY`表示只取后五行。
 # 表数据修改
 ## SQL分类
 ### DDL

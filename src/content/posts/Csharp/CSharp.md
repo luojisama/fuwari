@@ -413,3 +413,29 @@ Console.WriteLine(string.Concat(str,"哦马吉里曼波"));
 string str2 = "rgdzsfJWB@HKrfg";
 Console.WriteLine(str2.Equals("RGdzsfJWB@HKrFG",StringComparison.OrdinalIgnoreCase));
 ```
+# 类与对象
+类是对一组对象的抽象描述，它定义了对象的属性（字段）和行为（方法）。
+```csharp
+//定义属性语法
+//修饰符 数据类型 属性名 = 默认值;
+public string name;//名字
+public string strian;//种类
+public double weight;//体重
+
+ //1：无参无返回值
+
+ //public void 方法名()
+ //{
+ //    方法体;
+ //}
+
+ public void getShow()
+ {
+     Console.WriteLine($"我的狗叫{name}，是一只{strian}，体重是{weight}KG");
+ }
+ 
+ //2：有参无返回值
+ //3：无参有返回值
+ //4：有参有返回值
+
+```
