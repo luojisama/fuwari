@@ -414,7 +414,8 @@ string str2 = "rgdzsfJWB@HKrfg";
 Console.WriteLine(str2.Equals("RGdzsfJWB@HKrFG",StringComparison.OrdinalIgnoreCase));
 ```
 # 类与对象
-类是对一组对象的抽象描述，它定义了对象的属性（字段）和行为（方法）。
+类是对一组对象的抽象描述，它定义了对象的属性（字段）和行为（方法）。  
+定义类：
 ```csharp
 //定义属性语法
 //修饰符 数据类型 属性名 = 默认值;
@@ -423,7 +424,6 @@ public string strian;//种类
 public double weight;//体重
 
  //1：无参无返回值
-
  //public void 方法名()
  //{
  //    方法体;
@@ -435,7 +435,117 @@ public double weight;//体重
  }
  
  //2：有参无返回值
+ //public void 方法名(参数列表)
+ //{ 
+ //    方法体;
+ //}
+  public void getValues (int a ,int b)//形式参数，无实际意义，不可缺少
+ {
+     Console.WriteLine(a+b);
+ }
+ 
  //3：无参有返回值
+ //public 返回值类型 方法名()
+ //{
+ //    方法体;
+ //    return 返回值;
+ //}
+ 
  //4：有参有返回值
 
+```
+调用类
+```csharp
+ dog NewDog = new dog();
+ //调用属性 对象名.属性名 = 值;
+ NewDog.name = "小黑";
+ NewDog.strian = "拉布拉多";
+ NewDog.weight = 15.5;
+ //调用方法 对象名.方法名();
+ NewDog.getShow();
+ NewDog.getValues(10, 20);//实际参数，不可缺少
+ 
+```
+# ADO
+## ADO概念
+一种数据库访问技术，应用程序可以链接到数据库，并以各种方式操作数据库中的数据，由COM组件库提供,优先访问数据库接口。
+## ADO组成
+### DataSet
+连接数据库的源
+### DataProvider
+数据提供程序，用于连接数据库，执行增删改查等操作。   
+`system.Data.SqlClient`用于连接SQLserver数据库。
+### Connection
+提供与数据源的连接。   
+#### sqlconnection的常用属性：
+##### ConnectionString
+##### DataSource
+##### State
+`Open()`打开   
+`Closed()`关闭   
+`Dispose`释放所有资源，一切清空   
+`connecting`正在连接   
+`executing`正在执行命令   
+##### ConnectionTimeout
+
+### Command
+执行数据库命令的对象，用于执行增删改查项目。   
+#### 常用方法：
+##### ExecuteNonQuery()
+`update`    
+`insert`   
+`delete`    
+#### ExecuteScalar0()
+获取聚合函数内容：
+`max()`    
+`min() `   
+`sum() `   
+`avg()`    
+`count()`    
+##### ExecuteReader()
+执行查询返回集，并逐行读取数据。
+#### 常用属性
+`Parameters`，获取参数集合（用于参数化查，防止SQL注入）。   
+##### 常用方法
+`add()`添加单个参数。   
+`AddWithValue()`同时添加参数和值，自动判断数据类型。   
+`AddRange0`添加数据元素。
+### DataReader
+从数据源中提供快速的,只读的数据库流。
+#### sqldatareader
+用于执行查询。     
+##### 常用属性：    
+`HasRows`：返回一个布尔值。
+##### 常用方法：     
+`Read()`：读取结果集中下一行，又为`True`，反之`False`。   
+`NextResult()`：移动到下一个结果集(适用于存储过程返回多个结果集的情况)。
+##### 获取结果集中的每一个结果
+`GetBoolean(int i)`    
+`GetDateTime(int i)`    
+`GeGetlnt32(int i)`    
+`GetString(int i)`    
+`IsDBNull(int i)`    
+以上都可以使用`下标`或`列名`获取数据库中的数据。
+### DataAdapter
+提供DataSet对象与数据源桥梁
+## ado.net访问数据库的步骤
+### 1.连接到数据库
+创建数据库连接字符串
+```csharp
+SqlConnection conn = new SqlConnection();
+conn.ConnectionString = "Data Source=.;database=cs;Integrated Security=True;";
+```
+上述代码中
+`Data Source`指数据源   
+`database`指数据库    
+`Integrated Security=True`指使用Windows验证而不是SQL Server 用户名密码
+### 2.打开连接
+```csharp
+conn.Open()
+```
+### 3.执行创建对象
+### 4.执行命令
+### 5.关闭连接
+```csharp
+conn.Close()
 ```
