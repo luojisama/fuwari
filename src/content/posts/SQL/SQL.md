@@ -190,13 +190,14 @@ SELECT s_id,s_age FROM stu ORDER BY s_age
 ## 聚合函数
 SQLSERVER中有如下聚合函数：
 
-| 函数名   | 说明      |
-| ----- | ------- |
-| COUNT | 统计非空行数量 |
-| SUM   | 求和      |
-| AVG   | 求平均值    |
-| MAX   | 取最大值    |
-| MIN   | 取最小值    |
+| 函数名   | 说明         |
+| ----- | ---------- |
+| COUNT | 统计非空行数量    |
+| SUM   | 求和         |
+| AVG   | 求平均值       |
+| MAX   | 取最大值       |
+| MIN   | 取最小值       |
+| ROUND | 对结果保留任意位小数 |
 ```sql
 SELECT COUNT(*) AS 人数 FROM stu
 ```
@@ -211,9 +212,22 @@ SELECT s_sex,count(*) FROM stu GROUP BY s_sex HAVING>1
 ```
 ## 分页
 ```sql
-SELECT *FROM stu ORDER BY stu_id OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+SELECT * FROM stu ORDER BY stu_id OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
 ```
 `OFFSET 0 ROWS`表示跳过0行，`FETCH NEXT 5 RWOS ONLY`表示只取后五行。
+## 多表
+内连接
+```sql
+Select * from 表名 表a inner join 表b on 表a.公共属性=表b.公共属性
+```
+外连接
+```sql
+Select * from 表名 表a left/right join 表b on 表a.公共属性=表b.公共属性
+```
+交叉连接
+```sql
+select * from 表a cross join 表b
+```
 # 表数据修改
 ## SQL分类
 ### DDL
