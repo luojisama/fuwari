@@ -27,7 +27,7 @@ sudo apt install python3-pip
 ```shell
 pip install nb-cli
 ```
-# 安装napcat，此处使用napcat文档中的一件使用脚本：
+# 安装napcat，此处使用napcat文档中的一键使用脚本：
 ```shell
 curl -o \
 napcat.sh \
@@ -38,6 +38,10 @@ https://nclatest.znin.net/NapNeko/NapCat-Installer/main/script/install.sh \
 # 安装tmux以用于后台挂起（服务器使用）：
 ```shell
 sudo apt install -y tmux
+```
+# 安装1Panel（服务器使用）：
+```shell
+curl -sSL https://resource.fit2cloud.com/1panel/package/quick_start.sh -o quick_start.sh && sudo bash quick_start.sh
 ```
 # 使用napcat
 在终端中输入：
