@@ -467,20 +467,139 @@ public double weight;//体重
  
 ```
 # 异常处理
+在C#中，异常不等于错误，异常代码可以正常运行，错误是代码无法直接运行。   
+我们使用`try {} catch () {}`语句来处理异常。   
+语法如下：
+```csharp
+try
+{
+    // 可能抛出异常的代码
+}
+catch (Exception ex)
+//Exception包含了所有异常状态
+{
+	// 异常处理逻辑
+	Console.WriteLine($"异常信息为{ex.Message}");
+    //message将异常状态详细描述
+}
+
+```
 # ADO
 ## ADO概念
-一种数据库访问技术，应用程序可以链接到数据库，并以各种方式操作数据库中的数据，由COM组件库提供,优先访问数据库接口。
+一种基于COM组件库的数据库访问技术，支持应用程序与数据库建立连接、执行数据操作（增删改查）等功能，优先调用数据库原生接口以提升性能。
 ## ADO组成
 ### DataSet
-连接数据库的源
+内存中的离线数据存储容器，可独立于数据源存在，支持多表数据存储与关系映射。
 ### DataProvider
-数据提供程序，用于连接数据库，执行增删改查等操作。   
-`system.Data.SqlClient`用于连接SQLserver数据库。
+数据提供程序，负责与具体数据库交互的核心组件，常见类型包括：
+- `System.Data.SqlClient`（SQL Server）
+- `System.Data.OleDb`（通用数据库）
 ### Connection
-提供与数据源的连接。   
+提供与数据源的持续连接，以`SqlConnection`（SQL Server连接）为例：
 #### sqlconnection的常用属性：
 ##### ConnectionString
+连接字符串，包含数据库地址、用户名、密码等连接信息
 ##### DataSource
+数据库服务器地址
+#### sqlconnection的常用方法：
+##### Open()
+打开数据库连接
+##### Close()
+关闭数据库连接
+```csharp
+// 示例：创建并打开SQL Server连接
+using System.Data.SqlClient;
+
+string connectionString = "Server=localhost;Database=TestDB;Uid=sa;Pwd=123456;";
+using (SqlConnection conn = new SqlConnection(connectionString))
+{
+    try
+    {
+        conn.Open();
+        Console.WriteLine("数据库连接成功");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"连接失败：{ex.Message}");
+    }
+}
+```
+##### State
+获取当前连接的状态（如`Open`、`Closed`等）。
+### SqlCommand
+用于向数据库发送SQL命令或存储过程，并执行这些命令。
+#### SqlCommand的常用属性：
+##### CommandText
+要执行的SQL语句或存储过程名称。
+##### Connection
+与命令关联的`SqlConnection`对象。
+##### CommandType
+指定命令类型，如`Text`（SQL语句）或`StoredProcedure`（存储过程）。
+#### SqlCommand的常用方法：
+##### ExecuteNonQuery()
+执行不返回任何行（如INSERT、UPDATE、DELETE）的SQL命令，返回受影响的行数。
+##### ExecuteScalar()
+执行返回单个值（如COUNT、SUM）的SQL命令，返回结果集的第一行第一列的值。
+##### ExecuteReader()
+执行返回多行数据（如SELECT）的SQL命令，返回`SqlDataReader`对象。
+```csharp
+// 示例：执行INSERT命令
+using System.Data.SqlClient;
+
+string connectionString = "Server=localhost;Database=TestDB;Uid=sa;Pwd=123456;";
+using (SqlConnection conn = new SqlConnection(connectionString))
+{
+    conn.Open();
+    string sql = "INSERT INTO Users (Name, Age) VALUES ('张三', 30)";
+    using (SqlCommand cmd = new SqlCommand(sql, conn))
+    {
+        int rowsAffected = cmd.ExecuteNonQuery();
+        Console.WriteLine($"插入了 {rowsAffected} 行数据");
+    }
+}
+```
+### SqlDataReader
+提供一种快速、只进、只读的方式从数据库中读取数据。
+#### SqlDataReader的常用方法：
+##### Read()
+读取下一行数据，如果成功则返回`true`，否则返回`false`。
+##### GetString(int ordinal)
+根据列的索引获取字符串类型的值。
+##### GetInt32(int ordinal)
+根据列的索引获取32位整数类型的值。
+```csharp
+// 示例：读取数据
+using System.Data.SqlClient;
+
+string connectionString = "Server=localhost;Database=TestDB;Uid=sa;Pwd=123456;";
+using (SqlConnection conn = new SqlConnection(connectionString))
+{
+    conn.Open();
+    string sql = "SELECT Name, Age FROM Users";
+    using (SqlCommand cmd = new SqlCommand(sql, conn))
+    {
+        using (SqlDataReader reader = cmd.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                Console.WriteLine($"姓名：{reader.GetString(0)}, 年龄：{reader.GetInt32(1)}");
+            }
+        }
+    }
+}
+using System.Data.SqlClient;
+
+string connectionString = "Server=localhost;Database=TestDB;Uid=sa;Pwd=123456;";
+using (SqlConnection conn = new SqlConnection(connectionString))
+{
+    try
+    {
+        conn.Open();
+        Console.WriteLine("数据库连接成功");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"连接失败：{ex.Message}
 ##### State
 `Open()`打开   
 `Closed()`关闭   

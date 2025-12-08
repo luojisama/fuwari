@@ -169,13 +169,16 @@ SELECT * FROM stu WHERE s_sex = '男'
 SELECT * FROM stu WHERE s_sex = '男' and s_class = '301'
 ```
 常用的条件表达式：
-> 使用`>`,`>=`,`<`,`<=`判断大小
-> 使用`=`判断等于
-> 使用`<>`判断不等与
-> 使用`LIKE''`判断相似，`%`表示任意字符，`_`表示单个字符
-> `BETWEEN...AND...`表示在...之间
-> `IN()`表示在集合内
-> `IS NULL`查询空值
+> 使用`>`,`>=`,`<`,`<=`判断大小   
+> 使用`=`判断等于   
+> 使用`<>`判断不等与   
+> 使用`LIKE''`判断相似，`%`表示任意字符，`_`表示单个字符   
+> `BETWEEN...AND...`表示在...之间   
+> `IN()`表示在集合内   
+> `IS NULL`查询空值   
+> `any`满足任意一个值则外层条件成立   
+> `all`满足所有值外层条件成立   
+> `exists`内层存在数据返回true，执行外层；反之返回false，外层不执行。   
 ## 去重查询
 在一些非唯一限制的值中，有时查询需要去重，可以使用`DISTINCT`。
 
@@ -216,18 +219,41 @@ SELECT * FROM stu ORDER BY stu_id OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
 ```
 `OFFSET 0 ROWS`表示跳过0行，`FETCH NEXT 5 RWOS ONLY`表示只取后五行。
 ## 多表
-内连接
+### 内连接
+通过两表间的主外键关系
 ```sql
 Select * from 表名 表a inner join 表b on 表a.公共属性=表b.公共属性
 ```
-外连接
+### 外连接
+以前表为主，查询满足条件的数据
 ```sql
 Select * from 表名 表a left/right join 表b on 表a.公共属性=表b.公共属性
 ```
-交叉连接
+### 交叉连接
+用表1乘表2的每一行（取笛卡尔积）
 ```sql
 select * from 表a cross join 表b
 ```
+### 等值连接
+```sql
+select * from 表a join 表b on 表a.字段a=表b.字段b
+```
+## 子查询
+在一个查询中嵌套另一个查询语句
+### 在where中使用
+#### 单值子查询
+```sql
+select * from 表名 where 条件1 (select * from 表名 where 条件2)
+```
+#### 多值子查询
+```sql
+select * from 表名 where 条件1 运算符 (select * from 表名 where in (条件2) )
+```
+### 在from中使用
+```sql
+select * from (select * from 表名 where 条件2) 表别名
+```
+
 # 表数据修改
 ## SQL分类
 ### DDL
@@ -298,4 +324,50 @@ DROP TABLE 表名
 
 TRUNCATE TABLE 表名
 --重构表，删除表结构与数据，然后重构表
+```
+# 事务
+在 SQL Server 中，事务（Transaction）就是一个工作单元，保证一组 SQL 操作要么全部成功提交，要么全部失败回滚，从而确保数据的一致性和完整性。
+## 四大特性（ACID）
+- **原子性 (Atomicity)**
+    - 事务中的所有操作要么全部成功，要么全部失败。
+    - 如果执行过程中出错，系统会回滚到事务开始前的状态。
+    - 例子：银行转账，扣款和入账必须同时完成，否则全部撤销。
+    
+- **一致性 (Consistency)**
+    - 事务执行前后，数据库必须从一个一致状态转变到另一个一致状态。
+    - 保证约束、规则不被破坏。
+    - 例子：如果约束规定 A+B=100，那么事务修改 A 时，B 也必须调整以保持总和为 100。
+    
+- **隔离性 (Isolation)**
+    - 并发事务之间互不干扰。
+    - 不同事务的操作在逻辑上是独立的。
+    - 数据库通过锁机制或 MVCC（多版本并发控制）来实现。
+    - 例子：两个用户同时转账，不能互相影响导致数据错误。
+    
+- **持久性 (Durability)**
+    - 一旦事务提交，其结果必须永久保存，即使系统故障也不能丢失。
+    - 通常依赖 **Redo Log** 和备份机制来保证。
+    - 例子：转账成功后，即使服务器宕机，数据也必须保持已更新状态。
+## 事务的基本操作
+- 开启事务
+```sql
+	begin transaction 
+	begin tran
+```
+- 提交事务
+自动提交（默认）
+手动提交（开启事务自动变成手动提交）
+```sql
+	commit transaction 
+	commit tran
+```
+- 回滚事务
+```sql
+	rollback transaction 
+	rollback
+```
+## 隔离
+修改隔离级别的方法：
+```sql
+	set transaction isolattion level 隔离级别;
 ```
