@@ -600,6 +600,7 @@ using (SqlConnection conn = new SqlConnection(connectionString))
     catch (Exception ex)
     {
         Console.WriteLine($"连接失败：{ex.Message}
+        ```
 ##### State
 `Open()`打开   
 `Closed()`关闭   
