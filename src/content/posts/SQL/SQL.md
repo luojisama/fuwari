@@ -371,3 +371,15 @@ TRUNCATE TABLE 表名
 ```sql
 	set transaction isolattion level 隔离级别;
 ```
+查看隔离级别：
+```sql
+	DBCC useroptions;
+	--
+```
+
+| 类型   | 值            |        | 性能   |
+| ---- | ------------ | ------ | ---- |
+| 未提交读 | UNMOMMITTED  | 脏读     | 性能最高 |
+| 已提交读 | COMMITTED    | 不可重复读  |      |
+| 可重复读 | REPEATABLE   | 幻读     |      |
+| 序列化  | SERIALIZABLE | 防止所有问题 | 性能最低 |
