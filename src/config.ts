@@ -43,7 +43,8 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Home,
 		LinkPreset.Archive,
 		LinkPreset.About,
-		LinkPreset.Friends,  
+		LinkPreset.Friends,
+		LinkPreset.Thoughts,
 		{
 			name: "GitHub",
 			url: "https://github.com/saicaca/fuwari", // 内部链接不需要包含基础路径，会自动添加

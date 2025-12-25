@@ -19,6 +19,13 @@ const postsCollection = defineCollection({
 		nextSlug: z.string().default(""),
 	}),
 });
+const thoughtsCollection = defineCollection({
+	schema: z.object({
+		published: z.date(),
+	}),
+});
+
 export const collections = {
 	posts: postsCollection,
+	thoughts: thoughtsCollection,
 };

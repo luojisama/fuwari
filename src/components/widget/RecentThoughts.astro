@@ -1,0 +1,60 @@
+---
+import { getCollection, render } from "astro:content";
+import I18nKey from "../../i18n/i18nKey";
+import { i18n } from "../../i18n/translation";
+import { url } from "../../utils/url-utils";
+import Markdown from "../misc/Markdown.astro";
+import WidgetLayout from "./WidgetLayout.astro";
+
+const thoughts = await getCollection("thoughts");
+thoughts.sort(
+	(a, b) => b.data.published.getTime() - a.data.published.getTime(),
+);
+
+const recentThoughts = await Promise.all(
+	thoughts.slice(0, 3).map(async (thought) => {
+		const { Content } = await render(thought);
+		return { ...thought, Content };
+	}),
+);
+
+function formatDate(date: Date) {
+	const mm = (date.getMonth() + 1).toString().padStart(2, "0");
+	const dd = date.getDate().toString().padStart(2, "0");
+	return `${mm}-${dd}`;
+}
+
+interface Props {
+	class?: string;
+	style?: string;
+}
+const className = Astro.props.class;
+const style = Astro.props.style;
+---
+
+<WidgetLayout name={i18n(I18nKey.thoughts)} id="recent-thoughts" class={className} style={style}>
+    <div class="flex flex-col gap-4">
+        {recentThoughts.length === 0 && (
+            <div class="text-sm text-50">
+                {i18n(I18nKey.noThoughts)}
+            </div>
+        )}
+        {recentThoughts.map((thought) => (
+            <div class="flex flex-col gap-1">
+                <div class="text-xs text-50 font-mono">
+                    {formatDate(thought.data.published)}
+                </div>
+                <div class="text-sm text-70 line-clamp-3">
+                    <Markdown class="!text-sm">
+                        <thought.Content />
+                    </Markdown>
+                </div>
+            </div>
+        ))}
+        {recentThoughts.length > 0 && (
+            <a href={url("/thoughts/")} class="text-xs text-[var(--primary)] hover:underline mt-2">
+                {i18n(I18nKey.more)}...
+            </a>
+        )}
+    </div>
+</WidgetLayout>

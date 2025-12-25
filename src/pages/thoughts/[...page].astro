@@ -1,0 +1,69 @@
+---
+import { getCollection, render } from "astro:content";
+import Markdown from "@components/misc/Markdown.astro";
+import type { GetStaticPaths } from "astro";
+import Pagination from "../../components/control/Pagination.astro";
+import { PAGE_SIZE } from "../../constants/constants";
+import I18nKey from "../../i18n/i18nKey";
+import { i18n } from "../../i18n/translation";
+import MainGridLayout from "../../layouts/MainGridLayout.astro";
+
+export const getStaticPaths = (async ({ paginate }) => {
+	const thoughts = await getCollection("thoughts");
+	thoughts.sort(
+		(a, b) => b.data.published.getTime() - a.data.published.getTime(),
+	);
+	return paginate(thoughts, { pageSize: PAGE_SIZE });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+
+const renderedThoughts = await Promise.all(
+	page.data.map(async (thought) => {
+		const { Content } = await render(thought);
+		return { ...thought, Content };
+	}),
+);
+
+function formatDateTime(date: Date) {
+	const yyyy = date.getFullYear();
+	const mm = (date.getMonth() + 1).toString().padStart(2, "0");
+	const dd = date.getDate().toString().padStart(2, "0");
+	const hh = date.getHours().toString().padStart(2, "0");
+	const min = date.getMinutes().toString().padStart(2, "0");
+	const ss = date.getSeconds().toString().padStart(2, "0");
+	return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+}
+
+const len = page.data.length;
+---
+
+<MainGridLayout title={i18n(I18nKey.thoughts)} description={i18n(I18nKey.thoughts)}>
+    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32 mb-4">
+        <div class="card-base z-10 px-9 py-6 relative w-full ">
+            <div class="flex items-center gap-2 mb-8">
+                <div class="w-1 h-6 bg-[var(--primary)] rounded-full"></div>
+                <h1 class="text-2xl font-bold text-90">{i18n(I18nKey.thoughts)}</h1>
+            </div>
+
+            <div class="space-y-8 relative before:content-[''] before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[2px] before:bg-[var(--primary)] before:opacity-20">
+                {renderedThoughts.map((thought) => (
+                    <div class="relative pl-8">
+                        <div class="absolute left-0 top-2 w-4 h-4 rounded-full bg-[var(--card-bg)] border-2 border-[var(--primary)] z-10"></div>
+                        <div class="flex flex-col gap-2">
+                            <div class="text-sm text-50 font-mono">
+                                {formatDateTime(thought.data.published)}
+                            </div>
+                            <div class="bg-[var(--btn-plain-bg-hover)] rounded-xl px-4 py-3 text-70 shadow-sm border border-[var(--line-color)]">
+                                <Markdown>
+                                    <thought.Content />
+                                </Markdown>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+    <Pagination class="mx-auto onload-animation" page={page} base="thoughts" style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
+</MainGridLayout>
