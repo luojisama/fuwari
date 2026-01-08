@@ -96,7 +96,7 @@ tmux a -t 会话名
 
 # Windows
 首先确保你已安装`Python`，且`Python`大于3.9，推荐使用3.12，下载直链：   
-https://www.python.org/ftp/python/3.12.0/python-3.12.0-embed-amd64.zip   
+https://www.python.org/ftp/python/3.12.9/python-3.12.9-amd64.exe      
 有一个可以使用的文本编辑器。
 ## 安装nb-cli
 与Linux类似，使用pip安装。   
