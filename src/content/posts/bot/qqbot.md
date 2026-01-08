@@ -131,4 +131,242 @@ nb
 SUPERUSERS=["你的qq号"]
 ONEBOT_ACCESS_TOKEN=你的token
 ```
-至此，你的bot部署完成了，插件扩展可在nonebot的商店中找到
+至此，你的bot部署完成了，插件扩展可在nonebot的商店中找到。   
+# win一键部署py脚本
+```python
+import os
+
+import sys
+
+import platform
+
+import subprocess
+
+import zipfile
+
+import urllib.request
+
+import shutil
+
+import ctypes
+
+import glob
+
+  
+
+def is_admin():
+
+    try:
+
+        return ctypes.windll.shell32.IsUserAnAdmin()
+
+    except:
+
+        return False
+
+  
+
+def run_command(command, shell=True, cwd=None):
+
+    print(f"执行命令: {command}")
+
+    try:
+
+        subprocess.check_call(command, shell=shell, cwd=cwd)
+
+    except subprocess.CalledProcessError as e:
+
+        print(f"命令执行失败: {e}")
+
+        return False
+
+    return True
+
+  
+
+def install_nb_cli():
+
+    print("正在安装 nb-cli...")
+
+    return run_command(f"{sys.executable} -m pip install nb-cli")
+
+  
+
+def init_nonebot():
+
+    if not os.path.exists("bot.py") and not os.path.exists(".env"):
+
+        print("正在初始化 NoneBot 项目...")
+
+        # 使用 non-interactive 模式创建项目，如果支持的话
+
+        # 这里简单创建一个基础结构
+
+        run_command("nb create --name mybot --template bootstrap --driver OneBotV11 --adapter OneBotV11 --no-install")
+
+        if os.path.exists("mybot"):
+
+            for item in os.listdir("mybot"):
+
+                shutil.move(os.path.join("mybot", item), ".")
+
+            os.rmdir("mybot")
+
+    else:
+
+        print("检测到已存在 NoneBot 项目，跳过初始化。")
+
+  
+
+def setup_napcat():
+
+    if not is_admin():
+
+        print("\n" + "!"*40)
+
+        print("警告: 检测到当前未以管理员权限运行。")
+
+        print("NapCatInstaller 可能在解压 QQ 时因权限不足失败。")
+
+        print("如果稍后安装失败，请尝试右键 '以管理员身份运行' 终端或脚本。")
+
+        print("!"*40 + "\n")
+
+  
+
+    url = "https://gh.llkk.cc/https://github.com/NapNeko/NapCatQQ/releases/download/v4.10.10/NapCat.Shell.Windows.OneKey.zip"
+
+    print(f"正在下载 NapCat Windows 版: {url}")
+
+    zip_path = "napcat.zip"
+
+    # 简单的重试逻辑
+
+    for i in range(3):
+
+        try:
+
+            urllib.request.urlretrieve(url, zip_path)
+
+            break
+
+        except Exception as e:
+
+            if i == 2: raise e
+
+            print(f"下载失败，正在进行第 {i+2} 次重试...")
+
+  
+
+    print("正在解压 NapCat...")
+
+    napcat_dir = os.path.abspath("napcat")
+
+    if os.path.exists(napcat_dir):
+
+        shutil.rmtree(napcat_dir)
+
+    os.makedirs(napcat_dir)
+
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+
+        zip_ref.extractall(napcat_dir)
+
+    os.remove(zip_path)
+
+    print("NapCat 已解压。")
+
+  
+
+    installer_path = os.path.join(napcat_dir, "NapCatInstaller.exe")
+
+    if os.path.exists(installer_path):
+
+        print(f"正在启动安装程序: {installer_path}")
+
+        # 使用绝对路径并在解压目录下运行，防止路径问题
+
+        run_command(f'"{installer_path}"', cwd=napcat_dir)
+
+    else:
+
+        print("未找到 NapCatInstaller.exe，请手动检查 napcat 目录。")
+
+  
+
+    # 搜索 NapCat.*.Shell 目录并运行 napcat.bat
+
+    print("正在搜索 NapCat Shell 启动脚本...")
+
+    shell_dirs = glob.glob(os.path.join(napcat_dir, "NapCat.*.Shell"))
+
+    if shell_dirs:
+
+        # 取匹配到的第一个（通常只有一个或取最新的）
+
+        target_shell_dir = shell_dirs[0]
+
+        bat_path = os.path.join(target_shell_dir, "napcat.bat")
+
+        if os.path.exists(bat_path):
+
+            print(f"正在启动 NapCat: {bat_path}")
+
+            # 使用 start 命令在新窗口运行，避免阻塞部署脚本完成
+
+            subprocess.Popen(f'start cmd /k "{bat_path}"', shell=True, cwd=target_shell_dir)
+
+        else:
+
+            print(f"在 {target_shell_dir} 中未找到 napcat.bat")
+
+    else:
+
+        print("未找到 NapCat.*.Shell 目录，可能安装程序尚未完成解压。")
+
+  
+
+def main():
+
+    if platform.system().lower() != "windows":
+
+        print("错误: 该脚本目前仅支持 Windows 系统。")
+
+        return
+
+  
+
+    print(f"系统检测: {platform.system()} {platform.release()}")
+
+    if not install_nb_cli():
+
+        print("nb-cli 安装失败，请检查网络或 Python 环境。")
+
+        return
+
+  
+
+    init_nonebot()
+
+    setup_napcat()
+
+    print("\n" + "="*30)
+
+    print("部署完成！")
+
+    print(f"1. NoneBot 目录: {os.getcwd()}")
+
+    print(f"2. NapCat 目录: {os.path.join(os.getcwd(), 'napcat')}")
+
+    print("="*30)
+
+  
+
+if __name__ == "__main__":
+
+    main()
+```
+使用方法：   
+复制后在当前位置新建一个终端，直接运行该脚本。  
+运行完成会自动打开napcat，按照提示登录获取token。    
+与上面一样，将token写入`.env.prod`文件。
