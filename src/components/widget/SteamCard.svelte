@@ -32,8 +32,8 @@
     try {
       // Use the provided APIs
       const [profileRes, gamesRes] = await Promise.all([
-        fetch('https://api.viki.moe/steam/shirosakishizuku'),
-        fetch('https://api.viki.moe/steam/shirosakishizuku/recently-played')
+        fetch('https://api.viki.moe/steam/76561199251859222'),
+        fetch('https://api.viki.moe/steam/76561199251859222/recently-played')
       ]);
 
       if (profileRes.ok) profileData = await profileRes.json();
