@@ -25,6 +25,12 @@ export type SiteConfig = {
 		depth: 1 | 2 | 3;
 	};
 
+	weather: {
+		enable: boolean;
+		stationCode: string; // NMC station code
+		position: "top" | "sticky-top" | "sticky-bottom";
+	};
+
 	favicon: Favicon[];
 };
 

@@ -4,6 +4,8 @@ import Categories from "./Categories.astro";
 import Profile from "./Profile.astro";
 import RecentThoughts from "./RecentThoughts.astro";
 import Tag from "./Tags.astro";
+import WeatherCard from "./WeatherCard.astro";
+import { siteConfig } from "@/config";
 
 interface Props {
 	class?: string;
@@ -11,14 +13,18 @@ interface Props {
 }
 
 const className = Astro.props.class;
+const { weather } = siteConfig;
 ---
 <div id="sidebar" class:list={[className, "w-full"]}>
     <div class="flex flex-col w-full gap-4 mb-4">
         <Profile></Profile>
+        {weather.position === "top" && <WeatherCard class="onload-animation" style="animation-delay: 150ms"></WeatherCard>}
     </div>
     <div id="sidebar-sticky" class="transition-all duration-700 flex flex-col w-full gap-4 top-4 sticky top-4">
+        {weather.position === "sticky-top" && <WeatherCard class="onload-animation" style="animation-delay: 150ms"></WeatherCard>}
         <Categories class="onload-animation" style="animation-delay: 150ms"></Categories>
         <RecentThoughts class="onload-animation" style="animation-delay: 175ms"></RecentThoughts>
         <Tag class="onload-animation" style="animation-delay: 200ms"></Tag>
+        {weather.position === "sticky-bottom" && <WeatherCard class="onload-animation" style="animation-delay: 200ms"></WeatherCard>}
     </div>
 </div>

@@ -28,6 +28,11 @@ export const siteConfig: SiteConfig = {
 		enable: true, // 在文章右侧显示目录
 		depth: 2, // 目录显示的最大标题层级，取值范围1-3
 	},
+	weather: {
+		enable: true,
+		stationCode: "IayMy", // 上海
+		position: "sticky-top",
+	},
 	favicon: [
 		// 保留空数组则使用默认favicon
 		// {
