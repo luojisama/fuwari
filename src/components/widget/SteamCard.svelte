@@ -33,11 +33,17 @@
       // Use the provided APIs
       const [profileRes, gamesRes] = await Promise.all([
         fetch('https://api.viki.moe/steam/76561199251859222'),
-        fetch('https://api.viki.moe/steam/76561199251859222/recently-played')
+        fetch('https://api.viki.moe/steam/shirosakishizuku/games')
       ]);
 
       if (profileRes.ok) profileData = await profileRes.json();
-      if (gamesRes.ok) gamesData = await gamesRes.json();
+      if (gamesRes.ok) {
+        const allGames = await gamesRes.json();
+        // Sort by playtime (descending) and take top 6, then we'll display 4
+        gamesData = allGames
+            .sort((a: any, b: any) => (b.playtime?.total_minutes || 0) - (a.playtime?.total_minutes || 0))
+            .slice(0, 6);
+      }
 
       if (profileData || gamesData) {
         localStorage.setItem(CACHE_KEY, JSON.stringify({ profile: profileData, games: gamesData }));
@@ -69,7 +75,14 @@
   }
 
   function getStatusText(profile: any) {
-    if (profile.game_info) return `正在玩: ${profile.game_info}`;
+    if (profile.game_info) {
+        if (typeof profile.game_info === 'string') {
+            return `正在玩: ${profile.game_info}`;
+        }
+        if (typeof profile.game_info === 'object' && profile.game_info !== null) {
+            return `正在玩: ${profile.game_info.name || profile.game_info.title || '未知游戏'}`;
+        }
+    }
     return profile.persona_state_desc || '未知状态';
   }
 </script>
@@ -124,6 +137,14 @@
                         {getStatusText(profileData)}
                     </span>
                 </div>
+                {#if profileData.account_age_years}
+                    <div class="mt-1 text-xs text-neutral-500 dark:text-neutral-400 flex gap-2">
+                        <span title="注册时间: {profileData.time_created}" class="flex items-center gap-1">
+                            <Icon icon="fa6-solid:calendar-day" />
+                            {profileData.account_age_years_desc || `${profileData.account_age_years} 年`}
+                        </span>
+                    </div>
+                {/if}
             </div>
         </div>
 
