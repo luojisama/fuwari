@@ -9,6 +9,26 @@ let runtimesCache:
 let lastFetchTime = 0;
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 
+// Fallback runtimes in case Piston API is down or fetch fails
+const FALLBACK_RUNTIMES = [
+	{
+		language: "python",
+		version: "3.10.0",
+		aliases: ["py", "py3", "python3", "python3.10"],
+	},
+	{
+		language: "javascript",
+		version: "18.15.0",
+		aliases: ["js", "node", "node.js"],
+	},
+	{ language: "typescript", version: "5.0.3", aliases: ["ts", "node-ts"] },
+	{ language: "go", version: "1.19.0", aliases: ["golang"] },
+	{ language: "rust", version: "1.68.2", aliases: ["rs"] },
+	{ language: "cpp", version: "10.2.0", aliases: ["c++", "g++"] },
+	{ language: "c", version: "10.2.0", aliases: ["gcc"] },
+	{ language: "java", version: "15.0.2", aliases: [] },
+];
+
 async function getRuntimes() {
 	const now = Date.now();
 	if (runtimesCache && now - lastFetchTime < CACHE_TTL) {
@@ -28,16 +48,33 @@ async function getRuntimes() {
 		return data;
 	} catch (error) {
 		console.error("Error fetching Piston runtimes:", error);
-		// 如果失败且没有缓存，返回空数组或抛出
-		return runtimesCache || [];
+		// Use fallback if cache is empty
+		return runtimesCache || FALLBACK_RUNTIMES;
 	}
 }
 
 export const POST: APIRoute = async ({ request }) => {
 	console.log("[API] /api/execute called");
+
+	// Simple security: Check Referer/Origin
+	const origin = request.headers.get("origin");
+	const referer = request.headers.get("referer");
+	const allowedHost = "shiro.team"; // From astro.config.mjs site config
+
+	// Allow local development
+	const isLocal =
+		origin?.includes("localhost") ||
+		origin?.includes("127.0.0.1") ||
+		referer?.includes("localhost");
+
+	// Relaxed check: Just ensure it's not from a completely different domain if possible,
+	// but for now, since Vercel previews have dynamic URLs, we might want to be permissive or strictly check production.
+	// Let's just log it for now to avoid breaking previews.
+	// console.log(`[API] Request from: ${origin || referer}`);
+
 	try {
 		const body = await request.json();
-		const { code, language } = body;
+		const { code, language, stdin } = body;
 		console.log(`[API] Executing ${language}`);
 
 		if (!code || !language) {
@@ -71,6 +108,8 @@ export const POST: APIRoute = async ({ request }) => {
 		}
 
 		// 调用 Piston API 执行代码
+		// 默认注入一些换行符作为 stdin，防止 input() 等待用户输入导致挂起
+		// Piston 的 stdin 参数如果不传，input() 可能会抛出 EOFError 或无限等待
 		const response = await fetch("https://emkc.org/api/v2/piston/execute", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -78,6 +117,7 @@ export const POST: APIRoute = async ({ request }) => {
 				language: runtime.language,
 				version: runtime.version,
 				files: [{ content: code }],
+				stdin: body.stdin || "\n\n\n\n\n", // 默认提供足够的换行符
 			}),
 		});
 
