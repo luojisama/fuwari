@@ -59,7 +59,7 @@ export const navBarConfig: NavBarConfig = {
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "assets/images/avatar.png", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
+	avatar: "/avatar.png", // 图片路径相对于/src目录。若以'/'开头则表示相对于/public目录
 	name: "白咲雫",
 	bio: "歇斯底里是崩溃，底里歇斯是美味.",
 	links: [
@@ -89,7 +89,6 @@ export const profileConfig: ProfileConfig = {
 			icon: "fa6-brands:github",
 			url: "https://github.com/luojisama",
 		},
-		
 	],
 };
 
