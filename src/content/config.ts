@@ -25,7 +25,10 @@ const thoughtsCollection = defineCollection({
 	}),
 });
 
-export const collections = {
+export const collections: Record<
+	string,
+	ReturnType<typeof defineCollection>
+> = {
 	posts: postsCollection,
 	thoughts: thoughtsCollection,
 };

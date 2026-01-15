@@ -1,90 +1,133 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import Icon from "@iconify/svelte";
+import Icon from "@iconify/svelte";
+import { onMount } from "svelte";
 
-  let profileData: any = null;
-  let gamesData: any = null;
-  let loading = true;
+type SteamProfile = {
+	profile_url?: string;
+	avatar?: { full?: string; medium?: string };
+	persona_name?: string;
+	persona_state?: number;
+	persona_state_desc?: string;
+	game_info?: string | { name?: string; title?: string } | null;
+	account_age_years?: number;
+	account_age_years_desc?: string;
+	time_created?: string;
+};
 
-  const CACHE_KEY = 'steam_cache_data';
-  const CACHE_TIME_KEY = 'steam_cache_time';
-  const ONE_DAY = 24 * 60 * 60 * 1000;
+type SteamGame = {
+	store_url?: string;
+	name?: string;
+	image?: { header?: string; icon?: string };
+	playtime?: {
+		total_minutes?: number;
+		recent_desc?: string;
+		total_desc?: string;
+	};
+};
 
-  async function fetchData(force = false) {
-    const now = Date.now();
-    const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
-    const cachedData = localStorage.getItem(CACHE_KEY);
+let profileData: SteamProfile | null = null;
+let gamesData: SteamGame[] = [];
+let loading = true;
 
-    if (!force && cachedTime && cachedData && now - parseInt(cachedTime) < ONE_DAY) {
-      try {
-        const parsed = JSON.parse(cachedData);
-        profileData = parsed.profile;
-        gamesData = parsed.games;
-        loading = false;
-        return;
-      } catch (e) {
-        localStorage.removeItem(CACHE_KEY);
-        localStorage.removeItem(CACHE_TIME_KEY);
-      }
-    }
+const CACHE_KEY = "steam_cache_data";
+const CACHE_TIME_KEY = "steam_cache_time";
+const ONE_DAY = 24 * 60 * 60 * 1000;
 
-    loading = true;
-    try {
-      // Use the provided APIs
-      const [profileRes, gamesRes] = await Promise.all([
-        fetch('https://api.viki.moe/steam/76561199251859222'),
-        fetch('https://api.viki.moe/steam/shirosakishizuku/games')
-      ]);
+async function fetchData(force = false) {
+	const now = Date.now();
+	const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+	const cachedData = localStorage.getItem(CACHE_KEY);
 
-      if (profileRes.ok) profileData = await profileRes.json();
-      if (gamesRes.ok) {
-        const allGames = await gamesRes.json();
-        // Sort by playtime (descending) and take top 6, then we'll display 4
-        gamesData = allGames
-            .sort((a: any, b: any) => (b.playtime?.total_minutes || 0) - (a.playtime?.total_minutes || 0))
-            .slice(0, 6);
-      }
+	if (
+		!force &&
+		cachedTime &&
+		cachedData &&
+		now - Number.parseInt(cachedTime) < ONE_DAY
+	) {
+		try {
+			const parsed = JSON.parse(cachedData) as {
+				profile?: SteamProfile;
+				games?: SteamGame[];
+			};
+			profileData = parsed.profile ?? null;
+			gamesData = Array.isArray(parsed.games) ? parsed.games : [];
+			loading = false;
+			return;
+		} catch (e) {
+			localStorage.removeItem(CACHE_KEY);
+			localStorage.removeItem(CACHE_TIME_KEY);
+		}
+	}
 
-      if (profileData || gamesData) {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ profile: profileData, games: gamesData }));
-        localStorage.setItem(CACHE_TIME_KEY, now.toString());
-      }
-    } catch (e) {
-      console.error('Failed to fetch Steam data', e);
-    } finally {
-      loading = false;
-    }
-  }
+	loading = true;
+	try {
+		// Use the provided APIs
+		const [profileRes, gamesRes] = await Promise.all([
+			fetch("https://api.viki.moe/steam/76561199251859222"),
+			fetch("https://api.viki.moe/steam/shirosakishizuku/games"),
+		]);
 
-  function handleRefresh() {
-    fetchData(true);
-  }
+		if (profileRes.ok) profileData = (await profileRes.json()) as SteamProfile;
+		if (gamesRes.ok) {
+			const allGames = (await gamesRes.json()) as unknown;
+			if (Array.isArray(allGames)) {
+				gamesData = (allGames as SteamGame[])
+					.sort(
+						(a: SteamGame, b: SteamGame) =>
+							(b.playtime?.total_minutes || 0) -
+							(a.playtime?.total_minutes || 0),
+					)
+					.slice(0, 6);
+			}
+		}
 
-  onMount(() => {
-    fetchData();
-  });
+		if (profileData || gamesData.length > 0) {
+			localStorage.setItem(
+				CACHE_KEY,
+				JSON.stringify({ profile: profileData, games: gamesData }),
+			);
+			localStorage.setItem(CACHE_TIME_KEY, now.toString());
+		}
+	} catch (e) {
+		console.error("Failed to fetch Steam data", e);
+	} finally {
+		loading = false;
+	}
+}
 
-  function getStatusColor(state: number, is_playing: boolean) {
-    if (is_playing) return 'text-green-500';
-    switch (state) {
-      case 1: return 'text-blue-400'; // Online
-      case 0: return 'text-neutral-400'; // Offline
-      case 3: return 'text-amber-400'; // Away
-      default: return 'text-blue-400';
-    }
-  }
+function handleRefresh() {
+	fetchData(true);
+}
 
-  function getStatusText(profile: any) {
-    if (profile.game_info) {
-        if (typeof profile.game_info === 'string') {
-            return `正在玩: ${profile.game_info}`;
-        }
-        if (typeof profile.game_info === 'object' && profile.game_info !== null) {
-            return `正在玩: ${profile.game_info.name || profile.game_info.title || '未知游戏'}`;
-        }
-    }
-    return profile.persona_state_desc || '未知状态';
-  }
+onMount(() => {
+	fetchData();
+});
+
+function getStatusColor(state: number, is_playing: boolean) {
+	if (is_playing) return "text-green-500";
+	switch (state) {
+		case 1:
+			return "text-blue-400"; // Online
+		case 0:
+			return "text-neutral-400"; // Offline
+		case 3:
+			return "text-amber-400"; // Away
+		default:
+			return "text-blue-400";
+	}
+}
+
+function getStatusText(profile: SteamProfile) {
+	if (profile.game_info) {
+		if (typeof profile.game_info === "string") {
+			return `正在玩: ${profile.game_info}`;
+		}
+		if (typeof profile.game_info === "object" && profile.game_info !== null) {
+			return `正在玩: ${profile.game_info.name || profile.game_info.title || "未知游戏"}`;
+		}
+	}
+	return profile.persona_state_desc || "未知状态";
+}
 </script>
 
 <div class="card-base p-6 mt-4 transition-all duration-300 hover:shadow-lg border border-neutral-100 dark:border-neutral-800">
@@ -104,7 +147,7 @@
             >
                 <Icon icon="fa6-solid:rotate" class={loading ? 'animate-spin' : ''} />
             </button>
-            {#if profileData}
+            {#if profileData?.profile_url}
                 <a href={profileData.profile_url} target="_blank" class="btn-regular p-2 rounded-lg text-sm flex items-center gap-2 active:scale-95 transition">
                     <Icon icon="fa6-brands:steam" class="text-lg" />
                     <span>个人主页</span>
@@ -121,8 +164,8 @@
     {:else if profileData}
         <div class="flex items-center gap-5 mb-8 p-4 rounded-2xl bg-neutral-50/50 dark:bg-neutral-800/30">
             <div class="relative group">
-                <img src={profileData.avatar?.full || profileData.avatar?.medium} 
-                     alt={profileData.persona_name} 
+                <img src={profileData.avatar?.full ?? profileData.avatar?.medium ?? ""} 
+                     alt={profileData.persona_name ?? "Steam Avatar"} 
                      class="w-20 h-20 rounded-2xl shadow-lg transition-transform group-hover:scale-105" />
                 <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white dark:border-neutral-900 
                     {profileData.persona_state === 0 ? 'bg-neutral-400' : (profileData.game_info ? 'bg-green-500' : 'bg-blue-400')} shadow-sm"></div>
@@ -133,7 +176,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="flex h-2 w-2 rounded-full {profileData.persona_state === 0 ? 'bg-neutral-400' : (profileData.game_info ? 'bg-green-500 animate-pulse' : 'bg-blue-400')}"></span>
-                    <span class="text-sm font-medium {getStatusColor(profileData.persona_state, !!profileData.game_info)} transition-colors">
+                    <span class="text-sm font-medium {getStatusColor(profileData.persona_state ?? 0, !!profileData.game_info)} transition-colors">
                         {getStatusText(profileData)}
                     </span>
                 </div>

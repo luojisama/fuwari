@@ -1,100 +1,133 @@
 <script lang="ts">
-	import Icon from "@iconify/svelte";
-	import { onMount } from "svelte";
+import Icon from "@iconify/svelte";
+import { onMount } from "svelte";
 
-	export let stationCode: string = "WwcJd";
+export let stationCode = "WwcJd";
 
-	let loading = true;
-	let error = "";
-	let weatherData: any = null;
+type WeatherData = {
+	temp: number | string;
+	info: string;
+	icon: string;
+	location: string;
+	max: number | string;
+	min: number | string;
+};
 
-	const mapNmcImgToIcon = (imgCode: number | string, isNight: boolean) => {
-		const code = Number(imgCode);
-		// Simplified mapping based on NMC codes
-		switch (code) {
-			case 0:
-				return isNight ? "material-symbols:clear-night" : "material-symbols:sunny";
-			case 1:
-				return isNight
-					? "material-symbols:partly-cloudy-night"
-					: "material-symbols:partly-cloudy-day";
-			case 2:
-				return "material-symbols:cloud";
-			case 18:
-				return "material-symbols:foggy";
-			case 53:
-				return "material-symbols:haze";
-			case 3:
-			case 7:
-			case 8:
-			case 9:
-			case 10:
-			case 11:
-			case 12:
-				return "material-symbols:rainy";
-			case 4:
-			case 5:
-				return "material-symbols:thunderstorm";
-			case 6:
-			case 13:
-			case 14:
-			case 15:
-			case 16:
-			case 17:
-				return "material-symbols:weather-snowy";
-			default:
-				return "material-symbols:cloud";
-		}
-	};
+let loading = true;
+let error = "";
+let weatherData: WeatherData | null = null;
 
-	const fetchWeather = async () => {
-		try {
-			loading = true;
-			const res = await fetch(
-				`https://www.nmc.cn/rest/weather?stationid=${stationCode}`,
-			);
-			const data = await res.json();
+const mapNmcImgToIcon = (imgCode: number | string, isNight: boolean) => {
+	const code = Number(imgCode);
+	// Simplified mapping based on NMC codes
+	switch (code) {
+		case 0:
+			return isNight
+				? "material-symbols:clear-night"
+				: "material-symbols:sunny";
+		case 1:
+			return isNight
+				? "material-symbols:partly-cloudy-night"
+				: "material-symbols:partly-cloudy-day";
+		case 2:
+			return "material-symbols:cloud";
+		case 18:
+			return "material-symbols:foggy";
+		case 53:
+			return "material-symbols:haze";
+		case 3:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+			return "material-symbols:rainy";
+		case 4:
+		case 5:
+			return "material-symbols:thunderstorm";
+		case 6:
+		case 13:
+		case 14:
+		case 15:
+		case 16:
+		case 17:
+			return "material-symbols:weather-snowy";
+		default:
+			return "material-symbols:cloud";
+	}
+};
 
-			if (data.code !== 0 || !data.data) {
-				throw new Error("Failed to load weather data");
-			}
-
-			const real = data.data.real;
-			const tempchart = data.data.tempchart;
-
-			// Find today's forecast for min/max
-			const today = new Date();
-			const yyyy = today.getFullYear();
-			const mm = String(today.getMonth() + 1).padStart(2, "0");
-			const dd = String(today.getDate()).padStart(2, "0");
-			const dateStr = `${yyyy}/${mm}/${dd}`;
-
-			const todayForecast =
-				tempchart.find((item: any) => item.time === dateStr) || {};
-
-			// Determine if it's night based on local time
-			const hour = new Date().getHours();
-			const isNight = hour < 6 || hour >= 18;
-
-			weatherData = {
-				temp: real.weather.temperature,
-				info: real.weather.info,
-				icon: mapNmcImgToIcon(real.weather.img, isNight),
-				location: real.station.city,
-				max: todayForecast.max_temp ?? "-",
-				min: todayForecast.min_temp ?? "-",
+const fetchWeather = async () => {
+	try {
+		loading = true;
+		const res = await fetch(
+			`https://www.nmc.cn/rest/weather?stationid=${stationCode}`,
+		);
+		const data = (await res.json()) as {
+			code?: number;
+			data?: {
+				real?: {
+					weather?: {
+						temperature?: number | string;
+						info?: string;
+						img?: number | string;
+					};
+					station?: {
+						city?: string;
+					};
+				};
+				tempchart?: Array<{
+					time?: string;
+					max_temp?: number | string;
+					min_temp?: number | string;
+				}>;
 			};
-		} catch (e) {
-			console.error(e);
-			error = "Failed to load weather";
-		} finally {
-			loading = false;
-		}
-	};
+		};
 
-	onMount(() => {
-		fetchWeather();
-	});
+		if (
+			data.code !== 0 ||
+			!data.data?.real?.weather ||
+			!data.data.real.station
+		) {
+			throw new Error("Failed to load weather data");
+		}
+
+		const real = data.data.real;
+		const tempchart = data.data.tempchart ?? [];
+
+		// Find today's forecast for min/max
+		const today = new Date();
+		const yyyy = today.getFullYear();
+		const mm = String(today.getMonth() + 1).padStart(2, "0");
+		const dd = String(today.getDate()).padStart(2, "0");
+		const dateStr = `${yyyy}/${mm}/${dd}`;
+
+		const todayForecast = tempchart.find((item) => item.time === dateStr);
+
+		// Determine if it's night based on local time
+		const hour = new Date().getHours();
+		const isNight = hour < 6 || hour >= 18;
+
+		weatherData = {
+			temp: real.weather.temperature ?? "-",
+			info: real.weather.info ?? "",
+			icon: mapNmcImgToIcon(real.weather.img ?? 2, isNight),
+			location: real.station.city ?? "",
+			max: todayForecast?.max_temp ?? "-",
+			min: todayForecast?.min_temp ?? "-",
+		};
+	} catch (e) {
+		console.error(e);
+		error = "Failed to load weather";
+	} finally {
+		loading = false;
+	}
+};
+
+onMount(() => {
+	fetchWeather();
+});
 </script>
 
 <div class="weather-container w-full h-full flex flex-col items-center justify-center gap-2 p-2">

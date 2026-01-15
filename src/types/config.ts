@@ -48,7 +48,6 @@ export enum LinkPreset {
 	Thoughts = 4,
 }
 
-
 export type NavBarLink = {
 	name: string;
 	url: string;
