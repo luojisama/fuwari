@@ -1,6 +1,7 @@
 import sitemap from "@astrojs/sitemap";
 import svelte from "@astrojs/svelte";
 import tailwind from "@astrojs/tailwind";
+import vercel from "@astrojs/vercel";
 import swup from "@swup/astro";
 import icon from "astro-icon";
 import { defineConfig } from "astro/config";
@@ -23,6 +24,7 @@ export default defineConfig({
 	site: "https://shiro.team/",
 	base: "/",
 	trailingSlash: "always",
+	adapter: vercel(),
 	integrations: [
 		tailwind({
 			nesting: true,
