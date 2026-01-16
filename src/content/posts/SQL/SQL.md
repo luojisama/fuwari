@@ -3,7 +3,7 @@ title: SQL基础
 published: 2025-09-18
 description: 'SQL基础语法'
 image: ''
-tags: ["SQL基础","基础教程"]
+tags: ["基础教程","SQL","数据库"]
 category: '基础教程'
 draft: false 
 lang: ''

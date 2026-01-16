@@ -3,7 +3,7 @@ title: Python 零基础教程  长期更新
 published: 2025-05-28
 description: Python的零基础教程
 image: ""
-tags: ["基础教程","Python"]
+tags: ["基础教程","Python","编程"]
 category: 基础教程
 draft: false
 ---

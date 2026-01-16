@@ -3,7 +3,7 @@ title: 一些C#的学习笔记
 published: 2025-08-26
 description: C#基础
 image: ""
-tags: ["基础教程","C#"]
+tags: ["基础教程","CSharp","编程"]
 category: 基础教程
 draft: false
 ---
