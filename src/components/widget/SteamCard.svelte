@@ -25,13 +25,34 @@ type SteamGame = {
 	};
 };
 
+type CS2Item = {
+	asset_id: string;
+	name: string;
+	icon_url: string;
+	rarity: string;
+	rarity_color: string;
+	type: string;
+	market_hash_name: string;
+};
+
 let profileData: SteamProfile | null = null;
 let gamesData: SteamGame[] = [];
+let inventoryData: CS2Item[] = [];
 let loading = true;
 
 const CACHE_KEY = "steam_cache_data";
 const CACHE_TIME_KEY = "steam_cache_time";
 const ONE_DAY = 24 * 60 * 60 * 1000;
+
+const rarityOrder: Record<string, number> = {
+	"非凡": 7,
+	"隐秘级": 6,
+	"保密级": 5,
+	"受限级": 4,
+	"军规级": 3,
+	"工业级": 2,
+	"普通级": 1,
+};
 
 async function fetchData(force = false) {
 	const now = Date.now();
@@ -48,9 +69,11 @@ async function fetchData(force = false) {
 			const parsed = JSON.parse(cachedData) as {
 				profile?: SteamProfile;
 				games?: SteamGame[];
+				inventory?: CS2Item[];
 			};
 			profileData = parsed.profile ?? null;
 			gamesData = Array.isArray(parsed.games) ? parsed.games : [];
+			inventoryData = Array.isArray(parsed.inventory) ? parsed.inventory : [];
 			loading = false;
 			return;
 		} catch (e) {
@@ -62,9 +85,10 @@ async function fetchData(force = false) {
 	loading = true;
 	try {
 		// Use the provided APIs
-		const [profileRes, gamesRes] = await Promise.all([
+		const [profileRes, gamesRes, inventoryRes] = await Promise.all([
 			fetch("https://api.viki.moe/steam/76561199251859222"),
 			fetch("https://api.viki.moe/steam/shirosakishizuku/games"),
+			fetch("https://api.viki.moe/steam/76561199251859222/cs2/inventory"),
 		]);
 
 		if (profileRes.ok) profileData = (await profileRes.json()) as SteamProfile;
@@ -80,11 +104,27 @@ async function fetchData(force = false) {
 					.slice(0, 6);
 			}
 		}
+		if (inventoryRes.ok) {
+			const allInventory = (await inventoryRes.json()) as CS2Item[];
+			if (Array.isArray(allInventory)) {
+				inventoryData = allInventory
+					.sort((a, b) => {
+						const rarityA = rarityOrder[a.rarity] || 0;
+						const rarityB = rarityOrder[b.rarity] || 0;
+						return rarityB - rarityA;
+					})
+					.slice(0, 20);
+			}
+		}
 
-		if (profileData || gamesData.length > 0) {
+		if (profileData || gamesData.length > 0 || inventoryData.length > 0) {
 			localStorage.setItem(
 				CACHE_KEY,
-				JSON.stringify({ profile: profileData, games: gamesData }),
+				JSON.stringify({
+					profile: profileData,
+					games: gamesData,
+					inventory: inventoryData,
+				}),
 			);
 			localStorage.setItem(CACHE_TIME_KEY, now.toString());
 		}
@@ -233,6 +273,27 @@ function getStatusText(profile: SteamProfile) {
             <div class="flex flex-col items-center justify-center py-6 text-neutral-400 text-sm italic gap-2">
                 <Icon icon="material-symbols:History-rounded" class="text-2xl" />
                 <span>最近没玩过什么游戏呢...</span>
+            </div>
+        {/if}
+
+        {#if inventoryData && inventoryData.length > 0}
+            <div class="mt-8">
+                <div class="flex items-center gap-2 mb-4 font-bold text-lg text-neutral-800 dark:text-neutral-200">
+                    <Icon icon="fa6-solid:briefcase" class="text-[var(--primary)]" />
+                    CS2 库存精选
+                </div>
+                <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                    {#each inventoryData as item}
+                        <div class="group relative aspect-square rounded-lg bg-neutral-100 dark:bg-neutral-800 border-2 transition-all hover:scale-110 hover:z-10 cursor-help"
+                             style="border-color: #{item.rarity_color || 'transparent'}"
+                             title="{item.name} ({item.rarity})">
+                            <img src={item.icon_url} alt={item.name} class="w-full h-full object-contain p-1" />
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-end justify-center p-1">
+                                <span class="text-[8px] text-white text-center leading-tight truncate w-full">{item.name}</span>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
             </div>
         {/if}
     {:else}
