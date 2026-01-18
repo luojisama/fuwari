@@ -33,6 +33,7 @@ type CS2Item = {
 	rarity_color: string;
 	type: string;
 	market_hash_name: string;
+	count?: number;
 };
 
 let profileData: SteamProfile | null = null;
@@ -107,13 +108,31 @@ async function fetchData(force = false) {
 		if (inventoryRes.ok) {
 			const allInventory = (await inventoryRes.json()) as CS2Item[];
 			if (Array.isArray(allInventory)) {
-				inventoryData = allInventory
+				// Group identical items by market_hash_name
+				const groupedMap = new Map<string, CS2Item>();
+				for (const item of allInventory) {
+					const key = item.market_hash_name;
+					if (groupedMap.has(key)) {
+						const existing = groupedMap.get(key)!;
+						existing.count = (existing.count || 1) + (item.count || 1);
+					} else {
+						groupedMap.set(key, { ...item, count: item.count || 1 });
+					}
+				}
+
+				inventoryData = Array.from(groupedMap.values())
 					.sort((a, b) => {
 						const rarityA = rarityOrder[a.rarity] || 0;
 						const rarityB = rarityOrder[b.rarity] || 0;
-						return rarityB - rarityA;
+						if (rarityB !== rarityA) {
+							return rarityB - rarityA;
+						}
+						// 品质相同时，按数量降序
+						const countA = a.count || 1;
+						const countB = b.count || 1;
+						return countB - countA;
 					})
-					.slice(0, 20);
+					.slice(0, 30);
 			}
 		}
 
@@ -288,6 +307,11 @@ function getStatusText(profile: SteamProfile) {
                              style="border-color: #{item.rarity_color || 'transparent'}"
                              title="{item.name} ({item.rarity})">
                             <img src={item.icon_url} alt={item.name} class="w-full h-full object-contain p-1" />
+                            {#if item.count && item.count > 1}
+                                <div class="absolute top-0.5 right-1 px-1 rounded bg-black/60 text-white text-[8px] font-bold">
+                                    x{item.count}
+                                </div>
+                            {/if}
                             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-end justify-center p-1">
                                 <span class="text-[8px] text-white text-center leading-tight truncate w-full">{item.name}</span>
                             </div>
