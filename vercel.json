@@ -1,1 +1,15 @@
-{}
+{
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "shiro.team"
+        }
+      ],
+      "destination": "https://blog.shiro.team/$1",
+      "permanent": true
+    }
+  ]
+}

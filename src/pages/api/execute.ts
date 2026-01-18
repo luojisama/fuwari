@@ -3,14 +3,18 @@ import type { APIRoute } from "astro";
 export const prerender = false;
 
 // 简单的内存缓存
-let runtimesCache:
-	| { language: string; version: string; aliases: string[] }[]
-	| null = null;
+type PistonRuntime = {
+	language: string;
+	version: string;
+	aliases: string[];
+};
+
+let runtimesCache: PistonRuntime[] | null = null;
 let lastFetchTime = 0;
 const CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 
 // Fallback runtimes in case Piston API is down or fetch fails
-const FALLBACK_RUNTIMES = [
+const FALLBACK_RUNTIMES: PistonRuntime[] = [
 	{
 		language: "python",
 		version: "3.10.0",
@@ -29,7 +33,7 @@ const FALLBACK_RUNTIMES = [
 	{ language: "java", version: "15.0.2", aliases: [] },
 ];
 
-async function getRuntimes() {
+async function getRuntimes(): Promise<PistonRuntime[]> {
 	const now = Date.now();
 	if (runtimesCache && now - lastFetchTime < CACHE_TTL) {
 		return runtimesCache;
@@ -42,10 +46,13 @@ async function getRuntimes() {
 			throw new Error(`Failed to fetch runtimes: ${response.statusText}`);
 		}
 		const data = await response.json();
-		runtimesCache = data;
-		lastFetchTime = now;
-		console.log("[API] Runtimes cached.");
-		return data;
+		if (Array.isArray(data)) {
+			runtimesCache = data;
+			lastFetchTime = now;
+			console.log("[API] Runtimes cached.");
+			return data;
+		}
+		throw new Error("Piston API returned non-array data");
 	} catch (error) {
 		console.error("Error fetching Piston runtimes:", error);
 		// Use fallback if cache is empty
@@ -59,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
 	// Simple security: Check Referer/Origin
 	const origin = request.headers.get("origin");
 	const referer = request.headers.get("referer");
-	const allowedHost = "shiro.team"; // From astro.config.mjs site config
+	const allowedHost = "blog.shiro.team"; // From astro.config.mjs site config
 
 	// Allow local development
 	const isLocal =
@@ -91,11 +98,11 @@ export const POST: APIRoute = async ({ request }) => {
 		const targetLang = language.toLowerCase();
 
 		// 查找匹配的运行时
-		const runtime = runtimes.find(
-			(r: any) =>
-				r.language === targetLang ||
-				(r.aliases && r.aliases.includes(targetLang)),
-		);
+		const runtime = Array.isArray(runtimes)
+			? runtimes.find(
+					(r) => r.language === targetLang || r.aliases?.includes(targetLang),
+				)
+			: null;
 
 		if (!runtime) {
 			return new Response(
@@ -117,7 +124,7 @@ export const POST: APIRoute = async ({ request }) => {
 				language: runtime.language,
 				version: runtime.version,
 				files: [{ content: code }],
-				stdin: body.stdin || "\n\n\n\n\n", // 默认提供足够的换行符
+				stdin: stdin || "\n\n\n\n\n", // 默认提供足够的换行符
 			}),
 		});
 
