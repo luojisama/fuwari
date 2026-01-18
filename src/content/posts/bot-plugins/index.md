@@ -42,3 +42,10 @@ lang: ""
 | steam                      | 查看指定用户steam状态，游戏库，最近游戏 | `/steam` 详细帮助                                                                                                                                                                            | 否     |     |
 | 追番查看                       | 查看指定用户/uid的追番列表        | `/追番 用户名/uid`                                                                                                                                                                            | 否     |     |
 | ll活动                       | 查看/推送拉拉活动<br>声优访华      | `/ll日程`<br>`/ll访华`                                                                                                                                                                       | 否     |     |
+
+---
+
+## 插件仓库
+::github{repo="luojisama/nonebot_plugins"}
+
+
