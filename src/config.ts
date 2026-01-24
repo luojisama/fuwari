@@ -35,11 +35,11 @@ export const siteConfig: SiteConfig = {
 	},
 	favicon: [
 		// 保留空数组则使用默认favicon
-		// {
-		//   src: '/favicon/icon.png',    // favicon路径，相对于/public目录
-		//   theme: 'light',              // （可选）'light'或'dark'，仅在需要为不同模式设置不同图标时使用
-		//   sizes: '32x32',              // （可选）图标尺寸，仅在需要设置不同尺寸图标时使用
-		// }
+		{
+			src: "/avatar.png", // favicon路径，相对于/public目录
+			//   theme: 'light',              // （可选）'light'或'dark'，仅在需要为不同模式设置不同图标时使用
+			//   sizes: '32x32',              // （可选）图标尺寸，仅在需要设置不同尺寸图标时使用
+		},
 	],
 };
 
@@ -48,6 +48,10 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Home,
 		LinkPreset.Archive,
 		LinkPreset.About,
+		{
+			name: "行程",
+			url: "/travel/",
+		},
 		LinkPreset.Friends,
 		LinkPreset.Thoughts,
 		{
