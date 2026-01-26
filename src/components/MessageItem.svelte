@@ -1,41 +1,14 @@
-<script lang="ts">
-import Icon from "@iconify/svelte";
-import type { Message } from "../types/message";
-import MarkdownIt from "markdown-it";
-import sanitizeHtml from "sanitize-html";
-import MessageEditor from "./MessageEditor.svelte";
-import { createEventDispatcher } from "svelte";
+<script context="module" lang="ts">
+    import MarkdownIt from "markdown-it";
+    import sanitizeHtml from "sanitize-html";
 
-export let message: Message;
-export let depth = 0;
-export let slug = "message-board";
+    const md = new MarkdownIt({
+        html: true,
+        breaks: true,
+        linkify: true,
+    });
 
-const dispatch = createEventDispatcher();
-let showReply = false;
-
-const md = new MarkdownIt({
-    html: true,
-    breaks: true,
-    linkify: true,
-});
-
-function renderContent(text: string) {
-    // Process spoilers: ||text|| -> <span class="spoiler">text</span>
-    // We do this before markdown rendering to avoid conflicts, but we need to be careful
-    // actually, simpler is to use a unique token or just regex after rendering if we are sure
-    // markdown-it doesn't mess it up.
-    // Let's try replacing || with a placeholder, render, then replace back?
-    // No, standard regex replacement usually works fine if keys are unique.
-    
-    // Better approach:
-    // 1. Escape HTML in text (markdown-it does this, but we want to inject our HTML)
-    // 2. Actually, let's try the regex replacement on the raw text, but using a valid HTML tag that markdown-it won't break.
-    // <span class="spoiler"> is valid HTML. markdown-it with html:true will preserve it.
-    const withSpoilers = text.replace(/\|\|(.*?)\|\|/g, '<span class="spoiler">$1</span>');
-    
-    const rawHtml = md.render(withSpoilers);
-    
-    return sanitizeHtml(rawHtml, {
+    const sanitizeOptions = {
         allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "details", "summary", "span", "h1", "h2"]),
         allowedAttributes: {
             ...sanitizeHtml.defaults.allowedAttributes,
@@ -45,8 +18,30 @@ function renderContent(text: string) {
         allowedClasses: {
             span: ["spoiler"],
         },
-    });
-}
+    };
+
+    function renderContent(text: string) {
+        // Process spoilers: ||text|| -> <span class="spoiler">text</span>
+        const withSpoilers = text.replace(/\|\|(.*?)\|\|/g, '<span class="spoiler">$1</span>');
+        
+        const rawHtml = md.render(withSpoilers);
+        
+        return sanitizeHtml(rawHtml, sanitizeOptions);
+    }
+</script>
+
+<script lang="ts">
+import Icon from "@iconify/svelte";
+import type { Message } from "../types/message";
+import MessageEditor from "./MessageEditor.svelte";
+import { createEventDispatcher } from "svelte";
+
+export let message: Message;
+export let depth = 0;
+export let slug = "message-board";
+
+const dispatch = createEventDispatcher();
+let showReply = false;
 
 function timeAgo(timestamp: number) {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);

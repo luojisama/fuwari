@@ -69,8 +69,12 @@ function handleSuccess(e: CustomEvent) {
 }
 
 onMount(() => {
-    fetchMessages();
-});
+        // Delay fetch to avoid blocking initial render and interactions
+        const timer = setTimeout(() => {
+            fetchMessages();
+        }, 100);
+        return () => clearTimeout(timer);
+    });
 </script>
 
 <div class="flex flex-col gap-8">
