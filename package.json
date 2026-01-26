@@ -31,6 +31,7 @@
 		"@iconify/svelte": "^4.2.0",
 		"@swup/astro": "^1.6.0",
 		"@tailwindcss/typography": "^0.5.16",
+		"@vercel/kv": "^3.0.0",
 		"astro": "5.15.8",
 		"astro-icon": "^1.1.5",
 		"axios": "^1.9.0",

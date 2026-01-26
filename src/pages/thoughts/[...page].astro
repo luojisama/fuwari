@@ -2,6 +2,7 @@
 import { getCollection, render } from "astro:content";
 import Markdown from "@components/misc/Markdown.astro";
 import type { GetStaticPaths } from "astro";
+import Comment from "../../components/Comment.astro";
 import Pagination from "../../components/control/Pagination.astro";
 import { PAGE_SIZE } from "../../constants/constants";
 import I18nKey from "../../i18n/i18nKey";
@@ -66,4 +67,5 @@ const len = page.data.length;
         </div>
     </div>
     <Pagination class="mx-auto onload-animation" page={page} base="thoughts" style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
+    <Comment slug="thoughts" />
 </MainGridLayout>

@@ -97,5 +97,12 @@
         overflow-x: auto;
         margin: 1em 0;
     }
+
+    .spoiler {
+        @apply bg-neutral-400/50 dark:bg-neutral-600/50 text-transparent cursor-pointer rounded px-1 transition-all duration-300 select-none blur-[2px];
+    }
     
+    .spoiler:hover {
+        @apply text-inherit bg-transparent blur-none;
+    }
 }

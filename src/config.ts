@@ -49,8 +49,8 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Archive,
 		LinkPreset.About,
 		{
-			name: "行程",
-			url: "/travel/",
+			name: "留言",
+			url: "/messages/",
 		},
 		LinkPreset.Friends,
 		LinkPreset.Thoughts,
@@ -97,6 +97,11 @@ export const profileConfig: ProfileConfig = {
 			name: "github",
 			icon: "fa6-brands:github",
 			url: "https://github.com/luojisama",
+		},
+		{
+			name: "行程",
+			icon: "fa6-solid:plane",
+			url: "/travel/",
 		},
 	],
 };
