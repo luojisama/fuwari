@@ -24,7 +24,7 @@ export default defineConfig({
 	site: "https://blog.shiro.team/",
 	base: "/",
 	trailingSlash: "always",
-	output: "hybrid",
+	output: "static",
 	adapter: vercel(),
 	integrations: [
 		tailwind({
