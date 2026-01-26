@@ -5,13 +5,13 @@ import type { Message } from "../types/message";
 
 const DB_PATH = path.join(process.cwd(), "data", "messages.json");
 const IS_VERCEL =
-	!!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
+	!!((process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) || process.env.REDIS_URL);
 
 // Initialize Vercel KV client
 const kv = IS_VERCEL
 	? createClient({
-			url: process.env.KV_REST_API_URL!,
-			token: process.env.KV_REST_API_TOKEN!,
+			url: process.env.KV_REST_API_URL || process.env.REDIS_URL!,
+			token: process.env.KV_REST_API_TOKEN || "",
 		})
 	: null;
 
