@@ -24,6 +24,25 @@ const { Content } = await render(aboutPost);
             <Markdown class="mt-2">
                 <Content />
             </Markdown>
+            
+            <div class="flex flex-col gap-4 mt-8">
+                <h2 class="text-xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                    <span class="w-1 h-6 bg-[var(--primary)] rounded-full"></span>
+                    Github Activity
+                </h2>
+                <a href="https://github.com/luojisama" target="_blank" rel="noopener noreferrer" class="block w-full">
+                    <img 
+                        src="https://github-readme-stats.vercel.app/api?username=luojisama&show_icons=true&theme=transparent&hide_border=true&title_color=0099ff&text_color=666&icon_color=0099ff" 
+                        alt="luojisama's Github Stats" 
+                        class="w-full h-auto dark:hidden"
+                    />
+                    <img 
+                        src="https://github-readme-stats.vercel.app/api?username=luojisama&show_icons=true&theme=transparent&hide_border=true&title_color=3b82f6&text_color=a3a3a3&icon_color=3b82f6" 
+                        alt="luojisama's Github Stats" 
+                        class="w-full h-auto hidden dark:block"
+                    />
+                </a>
+            </div>
         </div>
     </div>
 
