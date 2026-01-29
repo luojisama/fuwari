@@ -9,4 +9,7 @@ export interface Message {
 	avatar: string;
 	createdAt: number;
 	replies?: Message[];
+	os?: string;
+	browser?: string;
+	device?: string;
 }

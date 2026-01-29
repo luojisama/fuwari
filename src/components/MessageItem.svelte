@@ -82,6 +82,30 @@ function handleReplySuccess(e: CustomEvent) {
                         </span>
                     </div>
                     <div class="flex items-center gap-3">
+                        {#if message.os || message.browser}
+                            <div class="hidden sm:flex items-center gap-1.5 text-[11px] text-neutral-400/80 bg-neutral-100 dark:bg-neutral-800/50 px-2 py-0.5 rounded-md mr-1">
+                                {#if message.device}
+                                    <span class="flex items-center gap-1">
+                                        <Icon icon="fa6-solid:mobile" class="text-[10px]" />
+                                        {message.device}
+                                    </span>
+                                {/if}
+                                {#if message.os}
+                                    <span class="flex items-center gap-1">
+                                        {#if !message.device}
+                                            <Icon icon="fa6-solid:laptop" class="text-[10px]" />
+                                        {/if}
+                                        {message.os}
+                                    </span>
+                                {/if}
+                                {#if message.browser}
+                                    <span class="flex items-center gap-1">
+                                        <Icon icon="fa6-solid:globe" class="text-[10px]" />
+                                        {message.browser}
+                                    </span>
+                                {/if}
+                            </div>
+                        {/if}
                         <div class="text-xs text-neutral-400">
                             {timeAgo(message.createdAt)}
                         </div>

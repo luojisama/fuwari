@@ -173,6 +173,37 @@ let slug = propSlug || Astro.url.pathname.replace(/\/$/, "");
 </details>
 ```
 
+## 5. 获取设备信息 (Device Info)
+
+为了让留言板更有趣，我们增加了一个小功能：显示发送者的设备信息（操作系统、浏览器、设备型号）。
+
+首先安装 `ua-parser-js`：
+
+```bash
+pnpm add ua-parser-js
+pnpm add -D @types/ua-parser-js
+```
+
+然后在后端 API (`src/pages/api/messages.ts`) 中解析 `User-Agent`：
+
+```typescript
+import { UAParser } from "ua-parser-js";
+
+export const POST: APIRoute = async ({ request }) => {
+    // ...
+    const uaString = request.headers.get("user-agent") || "";
+    const parser = new UAParser(uaString);
+    
+    // 解析结果
+    const browser = parser.getBrowser();
+    const os = parser.getOS();
+    const device = parser.getDevice();
+    // ... 保存到数据库
+}
+```
+
+最后在前端 (`src/components/MessageItem.svelte`) 展示即可。
+
 # 部署配置
 
 在 Vercel 面板中，需要配置以下环境变量之一：
@@ -203,6 +234,9 @@ export interface Message {
 	avatar: string;
 	createdAt: number;
 	replies?: Message[];
+	os?: string;
+	browser?: string;
+	device?: string;
 }
 ```
 
@@ -315,6 +349,7 @@ export async function addMessage(
 
 ```typescript
 import type { APIRoute } from "astro";
+import { UAParser } from "ua-parser-js";
 import { addMessage, getMessages } from "../../utils/local-db";
 
 export const prerender = false;
@@ -337,6 +372,23 @@ export const POST: APIRoute = async ({ request }) => {
 		const body = await request.json();
 		console.log("Request body:", body);
 		const { nickname, content, email, website, parentId, slug } = body;
+
+		// Parse User Agent
+		const uaString = request.headers.get("user-agent") || "";
+		const parser = new UAParser(uaString);
+		const browser = parser.getBrowser();
+		const os = parser.getOS();
+		const device = parser.getDevice();
+
+		const browserName = browser.name
+			? `${browser.name} ${browser.major || browser.version || ""}`.trim()
+			: undefined;
+		const osName = os.name
+			? `${os.name} ${os.version || ""}`.trim()
+			: undefined;
+		const deviceName = device.model
+			? `${device.vendor || ""} ${device.model}`.trim()
+			: undefined;
 
 		if (!nickname || !content) {
 			return new Response(JSON.stringify({ error: "昵称和内容不能为空" }), {
@@ -372,6 +424,9 @@ export const POST: APIRoute = async ({ request }) => {
 			avatar,
 			parentId,
 			slug,
+			os: osName,
+			browser: browserName,
+			device: deviceName,
 		});
 
 		return new Response(JSON.stringify(newMessage), {
@@ -719,6 +774,30 @@ function handleReplySuccess(e: CustomEvent) {
                         </span>
                     </div>
                     <div class="flex items-center gap-3">
+                        {#if message.os || message.browser}
+                            <div class="hidden sm:flex items-center gap-1.5 text-[11px] text-neutral-400/80 bg-neutral-100 dark:bg-neutral-800/50 px-2 py-0.5 rounded-md mr-1">
+                                {#if message.device}
+                                    <span class="flex items-center gap-1">
+                                        <Icon icon="fa6-solid:mobile" class="text-[10px]" />
+                                        {message.device}
+                                    </span>
+                                {/if}
+                                {#if message.os}
+                                    <span class="flex items-center gap-1">
+                                        {#if !message.device}
+                                            <Icon icon="fa6-solid:laptop" class="text-[10px]" />
+                                        {/if}
+                                        {message.os}
+                                    </span>
+                                {/if}
+                                {#if message.browser}
+                                    <span class="flex items-center gap-1">
+                                        <Icon icon="fa6-solid:globe" class="text-[10px]" />
+                                        {message.browser}
+                                    </span>
+                                {/if}
+                            </div>
+                        {/if}
                         <div class="text-xs text-neutral-400">
                             {timeAgo(message.createdAt)}
                         </div>

@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { UAParser } from "ua-parser-js";
 import { addMessage, getMessages } from "../../utils/local-db";
 
 export const prerender = false;
@@ -21,6 +22,23 @@ export const POST: APIRoute = async ({ request }) => {
 		const body = await request.json();
 		console.log("Request body:", body);
 		const { nickname, content, email, website, parentId, slug } = body;
+
+		// Parse User Agent
+		const uaString = request.headers.get("user-agent") || "";
+		const parser = new UAParser(uaString);
+		const browser = parser.getBrowser();
+		const os = parser.getOS();
+		const device = parser.getDevice();
+
+		const browserName = browser.name
+			? `${browser.name} ${browser.major || browser.version || ""}`.trim()
+			: undefined;
+		const osName = os.name
+			? `${os.name} ${os.version || ""}`.trim()
+			: undefined;
+		const deviceName = device.model
+			? `${device.vendor || ""} ${device.model}`.trim()
+			: undefined;
 
 		if (!nickname || !content) {
 			return new Response(JSON.stringify({ error: "昵称和内容不能为空" }), {
@@ -56,6 +74,9 @@ export const POST: APIRoute = async ({ request }) => {
 			avatar,
 			parentId,
 			slug,
+			os: osName,
+			browser: browserName,
+			device: deviceName,
 		});
 
 		return new Response(JSON.stringify(newMessage), {
