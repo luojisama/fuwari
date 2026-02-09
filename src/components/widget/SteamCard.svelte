@@ -15,11 +15,13 @@ type SteamProfile = {
 };
 
 type SteamGame = {
+	appid: number;
 	store_url?: string;
 	name?: string;
-	image?: { header?: string; icon?: string };
+	image?: { header?: string; icon?: string; capsule_231x87?: string; capsule_sm_120?: string };
 	playtime?: {
 		total_minutes?: number;
+		recent_minutes?: number;
 		recent_desc?: string;
 		total_desc?: string;
 	};
@@ -37,12 +39,13 @@ type CS2Item = {
 };
 
 let profileData: SteamProfile | null = null;
-let gamesData: SteamGame[] = [];
+let recentGames: SteamGame[] = [];
+let topGames: SteamGame[] = [];
 let inventoryData: CS2Item[] = [];
 let loading = true;
 
-const CACHE_KEY = "steam_cache_data";
-const CACHE_TIME_KEY = "steam_cache_time";
+const CACHE_KEY = "steam_cache_data_v3"; // Bump version for structure change
+const CACHE_TIME_KEY = "steam_cache_time_v3";
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
 const rarityOrder: Record<string, number> = {
@@ -69,11 +72,13 @@ async function fetchData(force = false) {
 		try {
 			const parsed = JSON.parse(cachedData) as {
 				profile?: SteamProfile;
-				games?: SteamGame[];
+				recentGames?: SteamGame[];
+				topGames?: SteamGame[];
 				inventory?: CS2Item[];
 			};
 			profileData = parsed.profile ?? null;
-			gamesData = Array.isArray(parsed.games) ? parsed.games : [];
+			recentGames = Array.isArray(parsed.recentGames) ? parsed.recentGames : [];
+			topGames = Array.isArray(parsed.topGames) ? parsed.topGames : [];
 			inventoryData = Array.isArray(parsed.inventory) ? parsed.inventory : [];
 			loading = false;
 			return;
@@ -85,30 +90,38 @@ async function fetchData(force = false) {
 
 	loading = true;
 	try {
-		// Use the provided APIs
-		const [profileRes, gamesRes, inventoryRes] = await Promise.all([
+		const [profileRes, recentRes, gamesRes, inventoryRes] = await Promise.all([
 			fetch("https://api.viki.moe/steam/76561199251859222"),
+			fetch("https://api.viki.moe/steam/76561199251859222/recently-played"),
 			fetch("https://api.viki.moe/steam/shirosakishizuku/games"),
 			fetch("https://api.viki.moe/steam/76561199251859222/cs2/inventory"),
 		]);
 
 		if (profileRes.ok) profileData = (await profileRes.json()) as SteamProfile;
+		
+		if (recentRes.ok) {
+			const recentData = (await recentRes.json()) as unknown;
+			if (Array.isArray(recentData)) {
+				recentGames = (recentData as SteamGame[]).slice(0, 4);
+			}
+		}
+
 		if (gamesRes.ok) {
 			const allGames = (await gamesRes.json()) as unknown;
 			if (Array.isArray(allGames)) {
-				gamesData = (allGames as SteamGame[])
+				topGames = (allGames as SteamGame[])
 					.sort(
 						(a: SteamGame, b: SteamGame) =>
 							(b.playtime?.total_minutes || 0) -
 							(a.playtime?.total_minutes || 0),
 					)
-					.slice(0, 6);
+					.slice(0, 4);
 			}
 		}
+
 		if (inventoryRes.ok) {
 			const allInventory = (await inventoryRes.json()) as CS2Item[];
 			if (Array.isArray(allInventory)) {
-				// Group identical items by market_hash_name
 				const groupedMap = new Map<string, CS2Item>();
 				for (const item of allInventory) {
 					const key = item.market_hash_name;
@@ -127,7 +140,6 @@ async function fetchData(force = false) {
 						if (rarityB !== rarityA) {
 							return rarityB - rarityA;
 						}
-						// 品质相同时，按数量降序
 						const countA = a.count || 1;
 						const countB = b.count || 1;
 						return countB - countA;
@@ -136,12 +148,13 @@ async function fetchData(force = false) {
 			}
 		}
 
-		if (profileData || gamesData.length > 0 || inventoryData.length > 0) {
+		if (profileData || recentGames.length > 0 || topGames.length > 0 || inventoryData.length > 0) {
 			localStorage.setItem(
 				CACHE_KEY,
 				JSON.stringify({
 					profile: profileData,
-					games: gamesData,
+					recentGames: recentGames,
+					topGames: topGames,
 					inventory: inventoryData,
 				}),
 			);
@@ -187,6 +200,11 @@ function getStatusText(profile: SteamProfile) {
 	}
 	return profile.persona_state_desc || "未知状态";
 }
+
+function getProxyUrl(url: string) {
+	if (!url) return "";
+	return `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
+}
 </script>
 
 <div class="card-base p-6 mt-4 transition-all duration-300 hover:shadow-lg border border-neutral-100 dark:border-neutral-800">
@@ -195,7 +213,7 @@ function getStatusText(profile: SteamProfile) {
             before:w-1 before:h-5 before:rounded-md before:bg-[var(--primary)]
             before:absolute before:-left-3 before:top-[0.4rem]"
         >
-            Steam 最近玩过
+            Steam 游戏动态
         </div>
         <div class="flex items-center gap-2">
             <button 
@@ -223,7 +241,7 @@ function getStatusText(profile: SteamProfile) {
     {:else if profileData}
         <div class="flex items-center gap-5 mb-8 p-4 rounded-2xl bg-neutral-50/50 dark:bg-neutral-800/30">
             <div class="relative group">
-                <img src={profileData.avatar?.full ?? profileData.avatar?.medium ?? ""} 
+                <img src={getProxyUrl(profileData.avatar?.full ?? profileData.avatar?.medium ?? "")} 
                      alt={profileData.persona_name ?? "Steam Avatar"} 
                      class="w-20 h-20 rounded-2xl shadow-lg transition-transform group-hover:scale-105" />
                 <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white dark:border-neutral-900 
@@ -250,43 +268,88 @@ function getStatusText(profile: SteamProfile) {
             </div>
         </div>
 
-        {#if gamesData && gamesData.length > 0}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {#each gamesData.slice(0, 4) as game}
-                    <a href={game.store_url} target="_blank" class="flex items-center gap-4 p-3 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700/50 hover:border-[var(--primary)] transition-colors group">
-                        <div class="relative overflow-hidden rounded-lg w-28 h-12 bg-neutral-100 dark:bg-neutral-700 flex-shrink-0">
-                            {#if game.image?.header}
-                                <img src={game.image.header} 
-                                     alt={game.name} class="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                            {:else if game.image?.icon}
-                                <img src={game.image.icon} 
-                                     alt={game.name} class="w-full h-full object-cover" />
-                            {:else}
-                                <div class="w-full h-full flex items-center justify-center">
-                                    <Icon icon="fa6-solid:gamepad" class="text-neutral-400 text-xl" />
-                                </div>
-                            {/if}
+        {#if recentGames.length > 0 || topGames.length > 0}
+            <div class="flex flex-col gap-6">
+                {#if recentGames.length > 0}
+                    <div>
+                        <div class="flex items-center gap-2 mb-3 text-sm font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                            <Icon icon="fa6-solid:clock-rotate-left" />
+                            最近在玩
                         </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="text-sm font-bold text-neutral-700 dark:text-neutral-200 truncate group-hover:text-[var(--primary)] transition-colors" title={game.name}>
-                                {game.name}
-                            </div>
-                            <div class="flex items-center gap-3 mt-1">
-                                {#if game.playtime?.recent_desc}
-                                    <div class="text-[10px] px-1.5 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
-                                        <Icon icon="material-symbols:schedule" />
-                                        近两周: {game.playtime.recent_desc}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {#each recentGames as game}
+                                <a href={game.store_url} target="_blank" class="flex items-center gap-4 p-3 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700/50 hover:border-[var(--primary)] transition-colors group">
+                                    <div class="relative overflow-hidden rounded-lg w-28 h-12 bg-neutral-100 dark:bg-neutral-700 flex-shrink-0">
+                                        {#if game.image?.capsule_231x87 || game.image?.capsule_sm_120 || game.image?.header}
+                                            <img src={getProxyUrl(game.image.capsule_231x87 || game.image.capsule_sm_120 || game.image.header || "")} 
+                                                 alt={game.name} class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                                        {:else if game.image?.icon}
+                                            <img src={getProxyUrl(game.image.icon)} 
+                                                 alt={game.name} class="w-full h-full object-cover" />
+                                        {:else}
+                                            <div class="w-full h-full flex items-center justify-center">
+                                                <Icon icon="fa6-solid:gamepad" class="text-neutral-400 text-xl" />
+                                            </div>
+                                        {/if}
                                     </div>
-                                {/if}
-                                {#if game.playtime?.total_desc}
-                                    <div class="text-[10px] text-neutral-400">
-                                        总计: {game.playtime.total_desc}
+                                    <div class="min-w-0 flex-1">
+                                        <div class="text-sm font-bold text-neutral-700 dark:text-neutral-200 truncate group-hover:text-[var(--primary)] transition-colors" title={game.name}>
+                                            {game.name}
+                                        </div>
+                                        <div class="flex items-center gap-3 mt-1">
+                                            {#if game.playtime?.recent_desc}
+                                                <div class="text-[10px] px-1.5 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+                                                    <Icon icon="material-symbols:schedule" />
+                                                    {game.playtime.recent_desc}
+                                                </div>
+                                            {/if}
+                                        </div>
                                     </div>
-                                {/if}
-                            </div>
+                                </a>
+                            {/each}
                         </div>
-                    </a>
-                {/each}
+                    </div>
+                {/if}
+
+                {#if topGames.length > 0}
+                    <div>
+                        <div class="flex items-center gap-2 mb-3 text-sm font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                            <Icon icon="fa6-solid:chart-simple" />
+                            游戏时长排行
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {#each topGames as game}
+                                <a href={game.store_url} target="_blank" class="flex items-center gap-4 p-3 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700/50 hover:border-[var(--primary)] transition-colors group">
+                                    <div class="relative overflow-hidden rounded-lg w-28 h-12 bg-neutral-100 dark:bg-neutral-700 flex-shrink-0">
+                                        {#if game.image?.capsule_231x87 || game.image?.capsule_sm_120 || game.image?.header}
+                                            <img src={getProxyUrl(game.image.capsule_231x87 || game.image.capsule_sm_120 || game.image.header || "")} 
+                                                 alt={game.name} class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                                        {:else if game.image?.icon}
+                                            <img src={getProxyUrl(game.image.icon)} 
+                                                 alt={game.name} class="w-full h-full object-cover" />
+                                        {:else}
+                                            <div class="w-full h-full flex items-center justify-center">
+                                                <Icon icon="fa6-solid:gamepad" class="text-neutral-400 text-xl" />
+                                            </div>
+                                        {/if}
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="text-sm font-bold text-neutral-700 dark:text-neutral-200 truncate group-hover:text-[var(--primary)] transition-colors" title={game.name}>
+                                            {game.name}
+                                        </div>
+                                        <div class="flex items-center gap-3 mt-1">
+                                            {#if game.playtime?.total_desc}
+                                                <div class="text-[10px] text-neutral-400">
+                                                    总计: {game.playtime.total_desc}
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    </div>
+                                </a>
+                            {/each}
+                        </div>
+                    </div>
+                {/if}
             </div>
         {:else}
             <div class="flex flex-col items-center justify-center py-6 text-neutral-400 text-sm italic gap-2">
@@ -306,7 +369,7 @@ function getStatusText(profile: SteamProfile) {
                         <div class="group relative aspect-square rounded-lg bg-neutral-100 dark:bg-neutral-800 border-2 transition-all hover:scale-110 hover:z-10 cursor-help"
                              style="border-color: #{item.rarity_color || 'transparent'}"
                              title="{item.name} ({item.rarity})">
-                            <img src={item.icon_url} alt={item.name} class="w-full h-full object-contain p-1" />
+                            <img src={getProxyUrl(item.icon_url)} alt={item.name} class="w-full h-full object-contain p-1" />
                             {#if item.count && item.count > 1}
                                 <div class="absolute top-0.5 right-1 px-1 rounded bg-black/60 text-white text-[8px] font-bold">
                                     x{item.count}
