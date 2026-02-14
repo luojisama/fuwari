@@ -55,14 +55,24 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.Friends,
 		LinkPreset.Thoughts,
 		{
-			name: "网页导航",
-			url: "https://nav.shiro.team/",
-			external: true,
-		},
-		{
-			name: "GitHub",
-			url: "https://github.com/saicaca/fuwari", // 内部链接不需要包含基础路径，会自动添加
-			external: true, // 显示外部链接图标并在新标签页打开
+			name: "更多",
+			url: "#",
+			children: [
+				{
+					name: "好物清单",
+					url: "/products/",
+				},
+				{
+					name: "网站导航",
+					url: "https://nav.shiro.team/",
+					external: true,
+				},
+				{
+					name: "GitHub",
+					url: "https://github.com/saicaca/fuwari",
+					external: true,
+				},
+			],
 		},
 	],
 };

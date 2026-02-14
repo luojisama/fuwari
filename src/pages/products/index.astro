@@ -1,0 +1,71 @@
+---
+import { getCollection } from "astro:content";
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+
+const products = await getCollection("products");
+
+const rankOrder = ["S", "A", "B", "C", "D"];
+const groupedProducts = products.reduce(
+	(acc, product) => {
+		const rank = product.data.rank || "Unranked";
+		if (!acc[rank]) acc[rank] = [];
+		acc[rank].push(product);
+		return acc;
+	},
+	{} as Record<string, typeof products>,
+);
+
+const sortedRanks = Object.keys(groupedProducts).sort((a, b) => {
+	const indexA = rankOrder.indexOf(a);
+	const indexB = rankOrder.indexOf(b);
+	if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+	if (indexA !== -1) return -1;
+	if (indexB !== -1) return 1;
+	return a.localeCompare(b);
+});
+
+const rankColors: Record<string, string> = {
+	S: "bg-red-500 text-white",
+	A: "bg-orange-500 text-white",
+	B: "bg-yellow-500 text-black",
+	C: "bg-green-500 text-white",
+	D: "bg-blue-500 text-white",
+};
+---
+
+<MainGridLayout title="好物清单">
+    <div class="flex flex-col gap-8 w-full mx-auto">
+        {sortedRanks.map(rank => (
+            <div class="flex flex-col gap-4">
+                <div class={`text-2xl font-bold px-6 py-2 rounded-xl w-fit shadow-md ${rankColors[rank] || "bg-gray-500 text-white"}`}>
+                    {rank} 级
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {groupedProducts[rank].map(product => (
+                        <a href={`/products/${product.slug}/`} class="card-base p-4 flex gap-4 hover:scale-[1.02] transition-transform duration-200 group">
+                            {product.data.image && (
+                                <div class="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-black/5 dark:bg-white/5">
+                                    <img src={product.data.image} alt={product.data.title} class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                                </div>
+                            )}
+                            <div class="flex flex-col gap-1">
+                                <div class="text-xl font-bold text-[var(--primary)]">{product.data.title}</div>
+                                <div class="text-sm text-75 line-clamp-2">{product.data.description}</div>
+                                {product.data.reason && (
+                                     <div class="text-xs text-50 mt-auto pt-2 border-t border-dashed border-black/10 dark:border-white/10">
+                                        评级理由: {product.data.reason}
+                                     </div>
+                                )}
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        ))}
+        {products.length === 0 && (
+            <div class="card-base p-8 text-center text-50">
+                暂无收录内容
+            </div>
+        )}
+    </div>
+</MainGridLayout>

@@ -11,6 +11,7 @@
 		"type-check": "tsc --noEmit --isolatedDeclarations",
 		"new-post": "node scripts/new-post.js",
 		"new-thought": "node scripts/new-thought.js",
+		"new-product": "node scripts/new-product.js",
 		"format": "biome format --write ./src",
 		"lint": "biome check --write ./src",
 		"preinstall": "npx only-allow pnpm"

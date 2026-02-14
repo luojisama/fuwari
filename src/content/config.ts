@@ -25,10 +25,22 @@ const thoughtsCollection = defineCollection({
 	}),
 });
 
+const productsCollection = defineCollection({
+	schema: z.object({
+		title: z.string(),
+		rank: z.string(),
+		image: z.string().optional(),
+		description: z.string().optional(),
+		reason: z.string().optional(),
+		published: z.date().optional(),
+	}),
+});
+
 export const collections: Record<
 	string,
 	ReturnType<typeof defineCollection>
 > = {
 	posts: postsCollection,
 	thoughts: thoughtsCollection,
+	products: productsCollection,
 };
