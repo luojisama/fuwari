@@ -8,7 +8,6 @@ export const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
 	长沙: { lat: 28.2282, lng: 112.9388 },
 	杭州: { lat: 30.2741, lng: 120.1551 },
 	南京: { lat: 32.0603, lng: 118.7969 },
-	武汉: { lat: 30.5928, lng: 114.3055 },
 	昆明: { lat: 24.8801, lng: 102.8329 },
 	普洱: { lat: 22.777, lng: 100.9709 },
 	桂林: { lat: 25.2345, lng: 110.18 },
