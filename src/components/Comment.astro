@@ -2,7 +2,7 @@
 import MessageBoard from "./MessageBoard.svelte";
 
 interface Props {
-    slug?: string;
+	slug?: string;
 }
 
 const { slug: propSlug } = Astro.props;
@@ -10,8 +10,8 @@ const { slug: propSlug } = Astro.props;
 // Use Astro.url.pathname as the default slug
 // Remove trailing slash for consistency, unless it's root
 let slug = propSlug || Astro.url.pathname;
-if (slug.length > 1 && slug.endsWith('/')) {
-    slug = slug.slice(0, -1);
+if (slug.length > 1 && slug.endsWith("/")) {
+	slug = slug.slice(0, -1);
 }
 ---
 

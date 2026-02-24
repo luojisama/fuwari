@@ -1,9 +1,9 @@
 <script lang="ts">
-import { onMount } from "svelte";
 import Icon from "@iconify/svelte";
+import { onMount } from "svelte";
+import type { Message } from "../types/message";
 import MessageEditor from "./MessageEditor.svelte";
 import MessageItem from "./MessageItem.svelte";
-import type { Message } from "../types/message";
 
 export let slug = "message-board";
 
@@ -12,69 +12,69 @@ let loading = true;
 let showSuccess = false;
 
 async function fetchMessages() {
-    loading = true;
-    try {
-        const res = await fetch(`/api/messages/?slug=${slug}`);
-        if (res.ok) {
-            const rawMessages: Message[] = await res.json();
-            
-            // Build tree
-            const messageMap = new Map<string, Message>();
-            rawMessages.forEach(m => {
-                m.replies = [];
-                messageMap.set(m.id, m);
-            });
-            
-            const rootMessages: Message[] = [];
-            rawMessages.forEach(m => {
-                if (m.parentId && messageMap.has(m.parentId)) {
-                    messageMap.get(m.parentId)!.replies!.push(m);
-                } else {
-                    rootMessages.push(m);
-                }
-            });
-            
-            // Sort root messages by newest first
-            rootMessages.sort((a, b) => b.createdAt - a.createdAt);
-            
-            // Sort replies by oldest first (chronological conversation)
-            rawMessages.forEach(m => {
-                if (m.replies) {
-                    m.replies.sort((a, b) => a.createdAt - b.createdAt);
-                }
-            });
-            
-            messages = rootMessages;
-        }
-    } catch (e) {
-        console.error("Failed to fetch messages", e);
-    } finally {
-        loading = false;
-    }
+	loading = true;
+	try {
+		const res = await fetch(`/api/messages/?slug=${slug}`);
+		if (res.ok) {
+			const rawMessages: Message[] = await res.json();
+
+			// Build tree
+			const messageMap = new Map<string, Message>();
+			rawMessages.forEach((m) => {
+				m.replies = [];
+				messageMap.set(m.id, m);
+			});
+
+			const rootMessages: Message[] = [];
+			rawMessages.forEach((m) => {
+				if (m.parentId && messageMap.has(m.parentId)) {
+					messageMap.get(m.parentId)!.replies!.push(m);
+				} else {
+					rootMessages.push(m);
+				}
+			});
+
+			// Sort root messages by newest first
+			rootMessages.sort((a, b) => b.createdAt - a.createdAt);
+
+			// Sort replies by oldest first (chronological conversation)
+			rawMessages.forEach((m) => {
+				if (m.replies) {
+					m.replies.sort((a, b) => a.createdAt - b.createdAt);
+				}
+			});
+
+			messages = rootMessages;
+		}
+	} catch (e) {
+		console.error("Failed to fetch messages", e);
+	} finally {
+		loading = false;
+	}
 }
 
 function handleSuccess(e: CustomEvent) {
-    // Add the new message to the list or refresh
-    // If it's a root message (no parentId), we can prepend it.
-    // If it's a reply, it's complicated to update locally without re-fetching or traversing.
-    // Re-fetching is safer and easier.
-    
-    // Show success toast
-    showSuccess = true;
-    setTimeout(() => {
-        showSuccess = false;
-    }, 3000);
-    
-    fetchMessages();
+	// Add the new message to the list or refresh
+	// If it's a root message (no parentId), we can prepend it.
+	// If it's a reply, it's complicated to update locally without re-fetching or traversing.
+	// Re-fetching is safer and easier.
+
+	// Show success toast
+	showSuccess = true;
+	setTimeout(() => {
+		showSuccess = false;
+	}, 3000);
+
+	fetchMessages();
 }
 
 onMount(() => {
-        // Delay fetch to avoid blocking initial render and interactions
-        const timer = setTimeout(() => {
-            fetchMessages();
-        }, 100);
-        return () => clearTimeout(timer);
-    });
+	// Delay fetch to avoid blocking initial render and interactions
+	const timer = setTimeout(() => {
+		fetchMessages();
+	}, 100);
+	return () => clearTimeout(timer);
+});
 </script>
 
 <div class="flex flex-col gap-8">

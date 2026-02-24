@@ -1,5 +1,9 @@
 ---
+import TravelMap from "../components/TravelMap.svelte";
 import MainGridLayout from "../layouts/MainGridLayout.astro";
+import { CITY_COORDINATES, EXTRA_CITIES } from "../utils/city-coordinates";
+import { getCityCoordinates } from "../utils/geocoding";
+import { parseTravelMarkdown } from "../utils/travel-parser";
 
 import { getEntry } from "astro:content";
 import { render } from "astro:content";
@@ -12,8 +16,90 @@ if (!travelPost) {
 }
 
 const { Content } = await render(travelPost);
+
+// Parse travel data for the map
+const allTravelEntries = parseTravelMarkdown(travelPost.body);
+
+// 1. Process markdown entries
+const completedTravelEntries = await Promise.all(
+	allTravelEntries
+		.filter((entry) => entry.status.includes("已完成"))
+		.map(async (entry) => {
+			const coords = await getCityCoordinates(entry.city);
+			return {
+				...entry,
+				name: entry.city,
+				lat: coords?.lat,
+				lng: coords?.lng,
+			};
+		}),
+);
+
+// Track existing cities to avoid duplicates
+const existingCities = new Set(completedTravelEntries.map((e) => e.city));
+
+// 2. Add cities from CITY_COORDINATES (if not already present)
+for (const [cityName, coords] of Object.entries(CITY_COORDINATES)) {
+	// Skip if already in the list or if it's a special placeholder like "暂定"
+	if (
+		existingCities.has(cityName) ||
+		cityName.includes("暂定") ||
+		cityName.includes("沿线")
+	) {
+		continue;
+	}
+
+	completedTravelEntries.push({
+		date: "未知",
+		city: cityName,
+		name: cityName,
+		event: "额外记录",
+		status: "已完成",
+		lat: coords.lat,
+		lng: coords.lng,
+	});
+	existingCities.add(cityName);
+}
+
+// 3. Add cities from EXTRA_CITIES (if not already present)
+if (EXTRA_CITIES && EXTRA_CITIES.length > 0) {
+	const extraResolved = await Promise.all(
+		EXTRA_CITIES.map(async (cityName) => {
+			if (existingCities.has(cityName)) return null;
+
+			const coords = await getCityCoordinates(cityName);
+			if (!coords) return null;
+
+			return {
+				date: "未知",
+				city: cityName,
+				name: cityName,
+				event: "额外记录",
+				status: "已完成",
+				lat: coords.lat,
+				lng: coords.lng,
+			};
+		}),
+	);
+
+	for (const entry of extraResolved) {
+		if (entry) {
+			completedTravelEntries.push(entry);
+			existingCities.add(entry.city);
+		}
+	}
+}
+
+const validEntries = completedTravelEntries.filter(
+	(entry) => entry.lat && entry.lng,
+);
 ---
 <MainGridLayout title="行程规划" description="行程规划">
+    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32 mb-4">
+        <div class="card-base z-10 px-4 py-4 relative w-full ">
+            <TravelMap client:only="svelte" travelData={validEntries} />
+        </div>
+    </div>
     <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
         <div class="card-base z-10 px-9 py-6 relative w-full ">
             <Markdown class="mt-2">

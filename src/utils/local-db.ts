@@ -7,7 +7,9 @@ import type { Message } from "../types/message";
 const DB_PATH = path.join(process.cwd(), "data", "messages.json");
 
 // Determine which client to use
-const USE_VERCEL_KV = !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN);
+const USE_VERCEL_KV = !!(
+	process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
+);
 const USE_REDIS_URL = !USE_VERCEL_KV && !!process.env.REDIS_URL;
 const IS_REMOTE = USE_VERCEL_KV || USE_REDIS_URL;
 

@@ -18,7 +18,12 @@ type SteamGame = {
 	appid: number;
 	store_url?: string;
 	name?: string;
-	image?: { header?: string; icon?: string; capsule_231x87?: string; capsule_sm_120?: string };
+	image?: {
+		header?: string;
+		icon?: string;
+		capsule_231x87?: string;
+		capsule_sm_120?: string;
+	};
 	playtime?: {
 		total_minutes?: number;
 		recent_minutes?: number;
@@ -49,13 +54,13 @@ const CACHE_TIME_KEY = "steam_cache_time_v3";
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
 const rarityOrder: Record<string, number> = {
-	"非凡": 7,
-	"隐秘级": 6,
-	"保密级": 5,
-	"受限级": 4,
-	"军规级": 3,
-	"工业级": 2,
-	"普通级": 1,
+	非凡: 7,
+	隐秘级: 6,
+	保密级: 5,
+	受限级: 4,
+	军规级: 3,
+	工业级: 2,
+	普通级: 1,
 };
 
 async function fetchData(force = false) {
@@ -98,7 +103,7 @@ async function fetchData(force = false) {
 		]);
 
 		if (profileRes.ok) profileData = (await profileRes.json()) as SteamProfile;
-		
+
 		if (recentRes.ok) {
 			const recentData = (await recentRes.json()) as unknown;
 			if (Array.isArray(recentData)) {
@@ -148,7 +153,12 @@ async function fetchData(force = false) {
 			}
 		}
 
-		if (profileData || recentGames.length > 0 || topGames.length > 0 || inventoryData.length > 0) {
+		if (
+			profileData ||
+			recentGames.length > 0 ||
+			topGames.length > 0 ||
+			inventoryData.length > 0
+		) {
 			localStorage.setItem(
 				CACHE_KEY,
 				JSON.stringify({

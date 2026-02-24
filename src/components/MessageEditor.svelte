@@ -1,6 +1,6 @@
 <script lang="ts">
-import { onMount, createEventDispatcher } from "svelte";
 import Icon from "@iconify/svelte";
+import { createEventDispatcher, onMount } from "svelte";
 
 export let parentId: string | undefined = undefined;
 export let placeholder = "说点什么吧... (支持 Markdown 和 ||隐藏内容||)";
@@ -17,56 +17,57 @@ let submitting = false;
 let contentTextarea: HTMLTextAreaElement;
 
 // Reactive avatar preview
-$: avatarPreview = email && (email.match(/^\d{5,11}$/) || email.match(/^\d{5,11}@qq\.com$/))
-    ? `https://q1.qlogo.cn/g?b=qq&nk=${email.replace(/@qq\.com$/, '')}&s=100`
-    : `https://api.dicebear.com/7.x/identicon/svg?seed=${nickname || 'anonymous'}`;
+$: avatarPreview =
+	email && (email.match(/^\d{5,11}$/) || email.match(/^\d{5,11}@qq\.com$/))
+		? `https://q1.qlogo.cn/g?b=qq&nk=${email.replace(/@qq\.com$/, "")}&s=100`
+		: `https://api.dicebear.com/7.x/identicon/svg?seed=${nickname || "anonymous"}`;
 
 onMount(() => {
-    nickname = localStorage.getItem("message_nickname") || "";
-    email = localStorage.getItem("message_email") || "";
-    website = localStorage.getItem("message_website") || "";
-    
-    if (autofocus && contentTextarea) {
-        contentTextarea.focus();
-    }
+	nickname = localStorage.getItem("message_nickname") || "";
+	email = localStorage.getItem("message_email") || "";
+	website = localStorage.getItem("message_website") || "";
+
+	if (autofocus && contentTextarea) {
+		contentTextarea.focus();
+	}
 });
 
-$: if (typeof localStorage !== 'undefined') {
-    if (nickname) localStorage.setItem("message_nickname", nickname);
-    if (email) localStorage.setItem("message_email", email);
-    if (website) localStorage.setItem("message_website", website);
+$: if (typeof localStorage !== "undefined") {
+	if (nickname) localStorage.setItem("message_nickname", nickname);
+	if (email) localStorage.setItem("message_email", email);
+	if (website) localStorage.setItem("message_website", website);
 }
 
 async function handleSubmit() {
-    if (!nickname.trim() || !content.trim()) return;
-    submitting = true;
-    try {
-        const res = await fetch("/api/messages/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                nickname,
-                content,
-                email,
-                website,
-                parentId,
-                slug
-            }),
-        });
+	if (!nickname.trim() || !content.trim()) return;
+	submitting = true;
+	try {
+		const res = await fetch("/api/messages/", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				nickname,
+				content,
+				email,
+				website,
+				parentId,
+				slug,
+			}),
+		});
 
-        const data = await res.json();
-        if (res.ok) {
-            content = ""; // Clear content
-            dispatch("success", data);
-        } else {
-            alert(data.error || "发送失败，请重试");
-        }
-    } catch (e) {
-        console.error("Failed to post message", e);
-        alert("发送失败，请检查网络连接");
-    } finally {
-        submitting = false;
-    }
+		const data = await res.json();
+		if (res.ok) {
+			content = ""; // Clear content
+			dispatch("success", data);
+		} else {
+			alert(data.error || "发送失败，请重试");
+		}
+	} catch (e) {
+		console.error("Failed to post message", e);
+		alert("发送失败，请检查网络连接");
+	} finally {
+		submitting = false;
+	}
 }
 </script>
 

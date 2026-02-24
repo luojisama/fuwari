@@ -1,119 +1,121 @@
 <script lang="ts">
-    import Icon from "@iconify/svelte";
-    import { onMount } from "svelte";
+import Icon from "@iconify/svelte";
+import { onMount } from "svelte";
 
-    type GithubUser = {
-        login: string;
-        avatar_url: string;
-        html_url: string;
-        name: string;
-        bio: string;
-        public_repos: number;
-        followers: number;
-        following: number;
-        created_at: string;
-    };
+type GithubUser = {
+	login: string;
+	avatar_url: string;
+	html_url: string;
+	name: string;
+	bio: string;
+	public_repos: number;
+	followers: number;
+	following: number;
+	created_at: string;
+};
 
-    type GithubRepo = {
-        name: string;
-        html_url: string;
-        description: string;
-        language: string;
-        stargazers_count: number;
-        forks_count: number;
-        updated_at: string;
-    };
+type GithubRepo = {
+	name: string;
+	html_url: string;
+	description: string;
+	language: string;
+	stargazers_count: number;
+	forks_count: number;
+	updated_at: string;
+};
 
-    let userData: GithubUser | null = null;
-    let reposData: GithubRepo[] = [];
-    let loading = true;
+let userData: GithubUser | null = null;
+let reposData: GithubRepo[] = [];
+let loading = true;
 
-    const CACHE_KEY = "github_cache_data";
-    const CACHE_TIME_KEY = "github_cache_time";
-    const ONE_HOUR = 60 * 60 * 1000;
+const CACHE_KEY = "github_cache_data";
+const CACHE_TIME_KEY = "github_cache_time";
+const ONE_HOUR = 60 * 60 * 1000;
 
-    async function fetchData(force = false) {
-        const now = Date.now();
-        const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
-        const cachedData = localStorage.getItem(CACHE_KEY);
+async function fetchData(force = false) {
+	const now = Date.now();
+	const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+	const cachedData = localStorage.getItem(CACHE_KEY);
 
-        if (
-            !force &&
-            cachedTime &&
-            cachedData &&
-            now - Number.parseInt(cachedTime) < ONE_HOUR
-        ) {
-            try {
-                const parsed = JSON.parse(cachedData);
-                userData = parsed.user;
-                reposData = parsed.repos;
-                loading = false;
-                return;
-            } catch (e) {
-                localStorage.removeItem(CACHE_KEY);
-                localStorage.removeItem(CACHE_TIME_KEY);
-            }
-        }
+	if (
+		!force &&
+		cachedTime &&
+		cachedData &&
+		now - Number.parseInt(cachedTime) < ONE_HOUR
+	) {
+		try {
+			const parsed = JSON.parse(cachedData);
+			userData = parsed.user;
+			reposData = parsed.repos;
+			loading = false;
+			return;
+		} catch (e) {
+			localStorage.removeItem(CACHE_KEY);
+			localStorage.removeItem(CACHE_TIME_KEY);
+		}
+	}
 
-        loading = true;
-        try {
-            const [userRes, reposRes] = await Promise.all([
-                fetch("https://api.github.com/users/luojisama"),
-                fetch("https://api.github.com/users/luojisama/repos?sort=pushed&direction=desc&per_page=6")
-            ]);
+	loading = true;
+	try {
+		const [userRes, reposRes] = await Promise.all([
+			fetch("https://api.github.com/users/luojisama"),
+			fetch(
+				"https://api.github.com/users/luojisama/repos?sort=pushed&direction=desc&per_page=6",
+			),
+		]);
 
-            if (userRes.ok) userData = await userRes.json();
-            if (reposRes.ok) reposData = await reposRes.json();
+		if (userRes.ok) userData = await userRes.json();
+		if (reposRes.ok) reposData = await reposRes.json();
 
-            if (userData || reposData.length > 0) {
-                localStorage.setItem(
-                    CACHE_KEY,
-                    JSON.stringify({
-                        user: userData,
-                        repos: reposData,
-                    })
-                );
-                localStorage.setItem(CACHE_TIME_KEY, now.toString());
-            }
-        } catch (e) {
-            console.error("Failed to fetch Github data", e);
-        } finally {
-            loading = false;
-        }
-    }
+		if (userData || reposData.length > 0) {
+			localStorage.setItem(
+				CACHE_KEY,
+				JSON.stringify({
+					user: userData,
+					repos: reposData,
+				}),
+			);
+			localStorage.setItem(CACHE_TIME_KEY, now.toString());
+		}
+	} catch (e) {
+		console.error("Failed to fetch Github data", e);
+	} finally {
+		loading = false;
+	}
+}
 
-    function handleRefresh() {
-        fetchData(true);
-    }
+function handleRefresh() {
+	fetchData(true);
+}
 
-    onMount(() => {
-        fetchData();
-    });
+onMount(() => {
+	fetchData();
+});
 
-    function formatDate(dateStr: string) {
-        const date = new Date(dateStr);
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    }
+function formatDate(dateStr: string) {
+	const date = new Date(dateStr);
+	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
 
-    const languageColors: Record<string, string> = {
-        TypeScript: "#3178c6",
-        JavaScript: "#f1e05a",
-        Python: "#3572A5",
-        Vue: "#41b883",
-        Svelte: "#ff3e00",
-        HTML: "#e34c26",
-        CSS: "#563d7c",
-        Astro: "#ff5a03",
-        Shell: "#89e051",
-        Java: "#b07219",
-        Go: "#00ADD8",
-        Rust: "#dea584",
-    };
+const languageColors: Record<string, string> = {
+	TypeScript: "#3178c6",
+	JavaScript: "#f1e05a",
+	Python: "#3572A5",
+	Vue: "#41b883",
+	Svelte: "#ff3e00",
+	HTML: "#e34c26",
+	CSS: "#563d7c",
+	Astro: "#ff5a03",
+	Shell: "#89e051",
+	Java: "#b07219",
+	Go: "#00ADD8",
+	Rust: "#dea584",
+};
 
-    function getProxyUrl(url: string) {
-        if (!url) return "";
-        return `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
-    }
+function getProxyUrl(url: string) {
+	if (!url) return "";
+	return `https://wsrv.nl/?url=${encodeURIComponent(url)}`;
+}
 </script>
 
 <div class="card-base p-6 mt-4 transition-all duration-300 hover:shadow-lg border border-neutral-100 dark:border-neutral-800">

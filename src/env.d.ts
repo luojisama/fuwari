@@ -2,5 +2,5 @@
 /// <reference path="../.astro/types.d.ts" />
 
 interface Window {
-    _codeBlockObserver?: MutationObserver;
+	_codeBlockObserver?: MutationObserver;
 }

@@ -1,33 +1,43 @@
 <script context="module" lang="ts">
-    import MarkdownIt from "markdown-it";
-    import sanitizeHtml from "sanitize-html";
+import MarkdownIt from "markdown-it";
+import sanitizeHtml from "sanitize-html";
 
-    const md = new MarkdownIt({
-        html: true,
-        breaks: true,
-        linkify: true,
-    });
+const md = new MarkdownIt({
+	html: true,
+	breaks: true,
+	linkify: true,
+});
 
-    const sanitizeOptions = {
-        allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img", "details", "summary", "span", "h1", "h2"]),
-        allowedAttributes: {
-            ...sanitizeHtml.defaults.allowedAttributes,
-            img: ["src", "alt", "title"],
-            span: ["class"],
-        },
-        allowedClasses: {
-            span: ["spoiler"],
-        },
-    };
+const sanitizeOptions = {
+	allowedTags: sanitizeHtml.defaults.allowedTags.concat([
+		"img",
+		"details",
+		"summary",
+		"span",
+		"h1",
+		"h2",
+	]),
+	allowedAttributes: {
+		...sanitizeHtml.defaults.allowedAttributes,
+		img: ["src", "alt", "title"],
+		span: ["class"],
+	},
+	allowedClasses: {
+		span: ["spoiler"],
+	},
+};
 
-    function renderContent(text: string) {
-        // Process spoilers: ||text|| -> <span class="spoiler">text</span>
-        const withSpoilers = text.replace(/\|\|(.*?)\|\|/g, '<span class="spoiler">$1</span>');
-        
-        const rawHtml = md.render(withSpoilers);
-        
-        return sanitizeHtml(rawHtml, sanitizeOptions);
-    }
+function renderContent(text: string) {
+	// Process spoilers: ||text|| -> <span class="spoiler">text</span>
+	const withSpoilers = text.replace(
+		/\|\|(.*?)\|\|/g,
+		'<span class="spoiler">$1</span>',
+	);
+
+	const rawHtml = md.render(withSpoilers);
+
+	return sanitizeHtml(rawHtml, sanitizeOptions);
+}
 </script>
 
 <script lang="ts">
