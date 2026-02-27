@@ -1,11 +1,13 @@
 ---
 import Comment from "@components/Comment.astro";
 import type { GetStaticPaths } from "astro";
+import { Icon } from "astro-icon/components";
 import PostPage from "../components/PostPage.astro";
 import Pagination from "../components/control/Pagination.astro";
 import { PAGE_SIZE } from "../constants/constants";
 import MainGridLayout from "../layouts/MainGridLayout.astro";
 import { getSortedPosts } from "../utils/content-utils";
+import { countWords, stripMarkdown } from "../utils/word-count";
 
 export const getStaticPaths = (async ({ paginate }) => {
 	const allBlogPosts = await getSortedPosts();
@@ -16,9 +18,28 @@ export const getStaticPaths = (async ({ paginate }) => {
 const { page } = Astro.props;
 
 const len = page.data.length;
+
+const allPosts = await getSortedPosts();
+let totalWords = 0;
+for (const post of allPosts) {
+	totalWords += countWords(stripMarkdown(post.body));
+}
 ---
 
 <MainGridLayout>
+    {page.currentPage === 1 && (
+        <div class="card-base px-8 py-4 mb-4 flex flex-row gap-4 items-center justify-center text-75 transition hover:scale-[1.02] hover:shadow-lg onload-animation" style="animation-delay: var(--content-delay);">
+            <div class="flex flex-row gap-2 items-center">
+                <Icon name="material-symbols:article-outline-rounded" class="text-2xl" />
+                <div class="font-bold">文章总数: {allPosts.length}</div>
+            </div>
+            <div class="w-[1px] h-4 bg-black/10 dark:bg-white/10"></div>
+            <div class="flex flex-row gap-2 items-center">
+                <Icon name="material-symbols:format-list-numbered-rounded" class="text-2xl" />
+                <div class="font-bold">全站字数: {totalWords.toLocaleString()}</div>
+            </div>
+        </div>
+    )}
     <PostPage page={page}></PostPage>
     <Pagination class="mx-auto onload-animation" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
 </MainGridLayout>

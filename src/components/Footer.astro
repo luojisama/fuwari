@@ -19,5 +19,19 @@ const currentYear = new Date().getFullYear();
         <br>
     </div>
     <script type="text/javascript">function runtime(){const t=new Date("05/26/2025 08:00:00"),n=new Date,s=n-t,e=Math.floor(s/1e3),o=Math.floor(e/86400),i=Math.floor(e%86400/3600),a=Math.floor(e%3600/60),r=e%60;document.getElementById("runningtime").innerHTML=`⭐本站已运行: ${o}天${i}小时${a}分${r}秒 ☁️`}setInterval(runtime,1e3)</script>
-    <div class="transition text-50 text-sm text-center hidden md:block"><p id="runningtime"> </p></div>
+    <div class="transition text-50 text-sm text-center hidden md:block">
+        <p id="runningtime"></p>
+        <p class="mt-1">
+            <span id="busuanzi_container_site_pv" style="display:none">
+                本站总访问量 <span id="busuanzi_value_site_pv" class="text-[var(--primary)] font-medium"></span> 次
+            </span>
+            <span id="busuanzi_container_site_uv" style="display:none">
+                <span class="mx-1">|</span>
+                本站访客数 <span id="busuanzi_value_site_uv" class="text-[var(--primary)] font-medium"></span> 人
+            </span>
+        </p>
+    </div>
 </div>
+
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
