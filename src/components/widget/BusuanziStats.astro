@@ -1,0 +1,91 @@
+<script>
+    // Busuanzi Stats Script
+    // This script handles:
+    // 1. Loading the Busuanzi script
+    // 2. Syncing the data from the hidden ID elements (which Busuanzi updates) to the Class elements (visible in Footers)
+    // 3. Handling Swup navigation re-loading
+
+    function initBusuanzi() {
+        const scriptUrl = "//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js";
+        
+        // Remove existing script if any (to force reload on Swup)
+        const oldScript = document.getElementById("busuanzi-script");
+        if (oldScript) {
+            oldScript.remove();
+        }
+
+        // Add script
+        const script = document.createElement("script");
+        script.id = "busuanzi-script";
+        script.src = scriptUrl;
+        script.async = true;
+        document.body.appendChild(script);
+    }
+
+    // Sync function: Copies values from ID elements to Class elements
+    function syncStats() {
+        const ids = [
+            { id: "busuanzi_container_site_pv", class: "busuanzi_container_site_pv" },
+            { id: "busuanzi_value_site_pv", class: "busuanzi_value_site_pv" },
+            { id: "busuanzi_container_site_uv", class: "busuanzi_container_site_uv" },
+            { id: "busuanzi_value_site_uv", class: "busuanzi_value_site_uv" }
+        ];
+
+        ids.forEach(item => {
+            const source = document.getElementById(item.id);
+            const targets = document.getElementsByClassName(item.class);
+            
+            if (source && targets.length > 0) {
+                // Check if Busuanzi has updated the display style
+                if (window.getComputedStyle(source).display !== "none") {
+                    for (let i = 0; i < targets.length; i++) {
+                        const target = targets[i] as HTMLElement;
+                        target.style.display = "inline"; // Show target
+                        // Only copy content for value elements
+                        if (item.id.includes("value")) {
+                            target.innerText = source.innerText;
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Initialize on load
+    initBusuanzi();
+
+    // Start a polling interval to sync data (Busuanzi updates asynchronously)
+    // We poll for a few seconds then stop to save resources
+    let intervalCount = 0;
+    const interval = setInterval(() => {
+        syncStats();
+        intervalCount++;
+        if (intervalCount > 20) { // Stop after 10 seconds (500ms * 20)
+            clearInterval(interval);
+        }
+    }, 500);
+
+    // Re-init on Swup navigation
+    document.addEventListener("swup:content:replace", () => {
+        initBusuanzi();
+        // Restart polling
+        intervalCount = 0;
+        const newInterval = setInterval(() => {
+            syncStats();
+            intervalCount++;
+            if (intervalCount > 20) {
+                clearInterval(newInterval);
+            }
+        }, 500);
+    });
+</script>
+
+<!-- Hidden Source Elements for Busuanzi -->
+<div style="display:none">
+    <span id="busuanzi_container_site_pv">
+        <span id="busuanzi_value_site_pv"></span>
+    </span>
+    <span id="busuanzi_container_site_uv">
+        <span id="busuanzi_value_site_uv"></span>
+    </span>
+</div>

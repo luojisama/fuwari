@@ -2,6 +2,7 @@
 import Footer from "@components/Footer.astro";
 import Navbar from "@components/Navbar.astro";
 import BackToTop from "@components/control/BackToTop.astro";
+import BusuanziStats from "@components/widget/BusuanziStats.astro";
 import SideBar from "@components/widget/SideBar.astro";
 import type { MarkdownHeading } from "astro";
 import { Icon } from "astro-icon/components";
@@ -90,6 +91,7 @@ const mainPanelTop = siteConfig.banner.enable
                     <div class="footer col-span-2 onload-animation hidden lg:block">
                         <Footer></Footer>
                     </div>
+                    <BusuanziStats />
                 </div>
             </main>
 
