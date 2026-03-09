@@ -36,8 +36,14 @@
             const targets = document.getElementsByClassName(item.class);
             
             if (source && targets.length > 0) {
-                // Check if Busuanzi has updated the display style
-                if (window.getComputedStyle(source).display !== "none") {
+                // Busuanzi sets source values asynchronously.
+                // Container visibility is decided by value availability,
+                // because source nodes are visually hidden off-screen.
+                const hasValue =
+                    item.id.includes("value")
+                        ? source.textContent?.trim()
+                        : true;
+                if (hasValue) {
                     for (let i = 0; i < targets.length; i++) {
                         const target = targets[i] as HTMLElement;
                         target.style.display = "inline"; // Show target
@@ -81,7 +87,10 @@
 </script>
 
 <!-- Hidden Source Elements for Busuanzi -->
-<div style="display:none">
+<div
+    aria-hidden="true"
+    style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;"
+>
     <span id="busuanzi_container_site_pv">
         <span id="busuanzi_value_site_pv"></span>
     </span>
