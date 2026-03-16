@@ -36,6 +36,12 @@ const productsCollection = defineCollection({
 	}),
 });
 
+const specCollection = defineCollection({
+	schema: z.object({
+		title: z.string().optional(),
+	}),
+});
+
 export const collections: Record<
 	string,
 	ReturnType<typeof defineCollection>
@@ -43,4 +49,5 @@ export const collections: Record<
 	posts: postsCollection,
 	thoughts: thoughtsCollection,
 	products: productsCollection,
+	spec: specCollection,
 };

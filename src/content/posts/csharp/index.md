@@ -356,7 +356,7 @@ for (int a = 1; a < 6; a++)
   Console.WriteLine(b[3]);
 ```
 输出的值应该为：
-```chsarp
+```csharp
 2
 ```
 
