@@ -12,6 +12,8 @@ const MAIL_SECURE = process.env.SMTP_SECURE === "true" || MAIL_PORT === 465;
 const MAIL_USER = process.env.SMTP_USER;
 const MAIL_PASS = process.env.SMTP_PASS;
 const MAIL_FROM = process.env.MAIL_FROM;
+const MAIL_NOTIFY_TO = process.env.MAIL_NOTIFY_TO;
+const BLOG_OWNER_EMAIL = process.env.BLOG_OWNER_EMAIL || MAIL_NOTIFY_TO;
 
 let mailTransporter: ReturnType<typeof nodemailer.createTransport> | null =
 	null;
@@ -37,6 +39,12 @@ function isValidEmail(value: string): boolean {
 
 function isValidQQ(value: string): boolean {
 	return /^\d{5,11}$/.test(value);
+}
+
+function normalizeEmail(value?: string): string | undefined {
+	if (!value) return undefined;
+	const normalized = value.trim().toLowerCase();
+	return normalized || undefined;
 }
 
 function escapeHtml(value: string): string {
@@ -162,26 +170,27 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 
 		try {
-			await sendEmailIfNeeded({
-				to: newMessage.email,
-				subject: "留言提交成功通知",
-				text: `你好 ${newMessage.nickname}，你的留言已提交成功。\n\n内容：${newMessage.content}\n\n页面：${newMessage.slug || "message-board"}`,
-				html: `<p>你好 ${escapeHtml(newMessage.nickname)}，你的留言已提交成功。</p><p>内容：${escapeHtml(newMessage.content)}</p><p>页面：${escapeHtml(newMessage.slug || "message-board")}</p>`,
-			});
+			const senderEmail = normalizeEmail(newMessage.email);
+			const ownerEmail = normalizeEmail(BLOG_OWNER_EMAIL);
+			const senderIsOwner = !!ownerEmail && senderEmail === ownerEmail;
 			if (parentId) {
 				const parentMessage = findMessageById(parentId, allMessages);
-				if (
-					parentMessage?.email &&
-					isValidEmail(parentMessage.email) &&
-					parentMessage.email !== newMessage.email
-				) {
+				const replyTarget = normalizeEmail(parentMessage?.email);
+				if (parentMessage && replyTarget && replyTarget !== senderEmail) {
 					await sendEmailIfNeeded({
-						to: parentMessage.email,
+						to: replyTarget,
 						subject: "你收到一条新的留言回复",
 						text: `你好 ${parentMessage.nickname}，${newMessage.nickname} 回复了你。\n\n回复内容：${newMessage.content}\n\n原留言：${parentMessage.content}`,
 						html: `<p>你好 ${escapeHtml(parentMessage.nickname)}，${escapeHtml(newMessage.nickname)} 回复了你。</p><p>回复内容：${escapeHtml(newMessage.content)}</p><p>原留言：${escapeHtml(parentMessage.content)}</p>`,
 					});
 				}
+			} else if (!senderIsOwner && ownerEmail) {
+				await sendEmailIfNeeded({
+					to: ownerEmail,
+					subject: "你收到一条新的留言",
+					text: `你好，收到来自 ${newMessage.nickname} 的新留言。\n\n内容：${newMessage.content}\n\n页面：${newMessage.slug || "message-board"}`,
+					html: `<p>你好，收到来自 ${escapeHtml(newMessage.nickname)} 的新留言。</p><p>内容：${escapeHtml(newMessage.content)}</p><p>页面：${escapeHtml(newMessage.slug || "message-board")}</p>`,
+				});
 			}
 		} catch (mailError) {
 			console.error("Mail notify failed:", mailError);

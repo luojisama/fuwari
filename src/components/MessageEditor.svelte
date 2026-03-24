@@ -17,10 +17,9 @@ let content = "";
 let submitting = false;
 let contentTextarea: HTMLTextAreaElement;
 
-$: avatarPreview =
-	qq?.match(/^\d{5,11}$/)
-		? `https://q1.qlogo.cn/g?b=qq&nk=${qq}&s=100`
-		: `https://api.dicebear.com/7.x/identicon/svg?seed=${nickname || "anonymous"}`;
+$: avatarPreview = qq?.match(/^\d{5,11}$/)
+	? `https://q1.qlogo.cn/g?b=qq&nk=${qq}&s=100`
+	: `https://api.dicebear.com/7.x/identicon/svg?seed=${nickname || "anonymous"}`;
 
 onMount(() => {
 	nickname = localStorage.getItem("message_nickname") || "";
