@@ -94,3 +94,22 @@ export async function addMessage(
 	}
 	return newMessage;
 }
+
+export async function updateMessage(
+	id: string,
+	updater: (message: Message) => Message,
+): Promise<Message | null> {
+	const messages = await getMessages();
+	const index = messages.findIndex((item) => item.id === id);
+	if (index < 0) return null;
+	const updated = updater(messages[index]);
+	messages[index] = updated;
+	if (USE_VERCEL_KV && kvClient) {
+		await kvClient.set("messages", messages);
+	} else if (USE_REDIS_URL && redisClient) {
+		await redisClient.set("messages", JSON.stringify(messages));
+	} else {
+		fs.writeFileSync(DB_PATH, JSON.stringify(messages, null, 2));
+	}
+	return updated;
+}

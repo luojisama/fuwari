@@ -3,7 +3,7 @@ import { Octokit } from "@octokit/rest";
 import type { APIRoute } from "astro";
 import { UAParser } from "ua-parser-js";
 import type { Message } from "../../types/message";
-import { addMessage, getMessages } from "../../utils/local-db";
+import { addMessage, getMessages, updateMessage } from "../../utils/local-db";
 
 export const prerender = false;
 
@@ -225,7 +225,20 @@ export const POST: APIRoute = async ({ request }) => {
 			try {
 				if (parentId) {
 					const root = findRootMessageForReply(parentId, allMessages);
-					if (root?.githubIssueNumber) {
+					if (root) {
+						if (!root.githubIssueNumber) {
+							root.githubIssueNumber = await createGitHubIssue({
+								nickname: root.nickname.slice(0, 20),
+								content: root.content.slice(0, 500),
+								email: root.email ? root.email.slice(0, 50) : undefined,
+								website: root.website,
+								slug: root.slug || slug,
+							});
+							await updateMessage(root.id, (message) => ({
+								...message,
+								githubIssueNumber: root.githubIssueNumber,
+							}));
+						}
 						githubIssueNumber = root.githubIssueNumber;
 						githubCommentId = await createGitHubComment(
 							root.githubIssueNumber,
@@ -238,6 +251,15 @@ export const POST: APIRoute = async ({ request }) => {
 								slug,
 							},
 						);
+					} else {
+						githubIssueNumber = await createGitHubIssue({
+							nickname: nickname.slice(0, 20),
+							content: content.slice(0, 500),
+							email: email ? email.slice(0, 50) : undefined,
+							website: finalWebsite,
+							ua: uaString,
+							slug,
+						});
 					}
 				} else {
 					githubIssueNumber = await createGitHubIssue({
