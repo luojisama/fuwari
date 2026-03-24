@@ -24,9 +24,18 @@ type GithubRepo = {
 	updated_at: string;
 };
 
+type GithubActivityResponse = {
+	user: GithubUser | null;
+	repos: GithubRepo[];
+	yearlyCommitCount: number;
+};
+
 let userData: GithubUser | null = null;
 let reposData: GithubRepo[] = [];
+let yearlyCommitCount = 0;
 let loading = true;
+const USERNAME = "luojisama";
+const CURRENT_YEAR = new Date().getFullYear();
 
 const CACHE_KEY = "github_cache_data";
 const CACHE_TIME_KEY = "github_cache_time";
@@ -36,17 +45,15 @@ async function fetchData(force = false) {
 	const now = Date.now();
 	const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
 	const cachedData = localStorage.getItem(CACHE_KEY);
+	// 强制禁用本地缓存，确保展示最新数据，也可以通过调整 ONE_HOUR 来恢复
+	const hasValidCache = false; 
 
-	if (
-		!force &&
-		cachedTime &&
-		cachedData &&
-		now - Number.parseInt(cachedTime) < ONE_HOUR
-	) {
+	if (!force && hasValidCache && cachedData) {
 		try {
 			const parsed = JSON.parse(cachedData);
 			userData = parsed.user;
 			reposData = parsed.repos;
+			yearlyCommitCount = parsed.yearlyCommitCount || 0;
 			loading = false;
 			return;
 		} catch (e) {
@@ -57,28 +64,37 @@ async function fetchData(force = false) {
 
 	loading = true;
 	try {
-		const [userRes, reposRes] = await Promise.all([
-			fetch("https://api.github.com/users/luojisama"),
-			fetch(
-				"https://api.github.com/users/luojisama/repos?sort=pushed&direction=desc&per_page=6",
-			),
-		]);
-
-		if (userRes.ok) userData = await userRes.json();
-		if (reposRes.ok) reposData = await reposRes.json();
-
+		// 每次请求带上时间戳防止浏览器或中间代理缓存
+		// 注意这里加了斜杠，适配 Astro 的 trailingSlash: "always" 配置
+		const response = await fetch(`/api/github-activity/?username=${USERNAME}&t=${Date.now()}`);
+		if (!response.ok) {
+			throw new Error(`Github activity api failed: ${response.status}`);
+		}
+		const data: GithubActivityResponse = await response.json();
+		userData = data.user;
+		reposData = data.repos || [];
+		yearlyCommitCount = data.yearlyCommitCount || 0;
 		if (userData || reposData.length > 0) {
 			localStorage.setItem(
 				CACHE_KEY,
 				JSON.stringify({
 					user: userData,
 					repos: reposData,
+					yearlyCommitCount,
 				}),
 			);
 			localStorage.setItem(CACHE_TIME_KEY, now.toString());
 		}
 	} catch (e) {
 		console.error("Failed to fetch Github data", e);
+		if (cachedData) {
+			try {
+				const parsed = JSON.parse(cachedData);
+				userData = parsed.user;
+				reposData = parsed.repos;
+				yearlyCommitCount = parsed.yearlyCommitCount || 0;
+			} catch {}
+		}
 	} finally {
 		loading = false;
 	}
@@ -135,7 +151,7 @@ function getProxyUrl(url: string) {
             >
                 <Icon icon="fa6-solid:rotate" class={loading ? 'animate-spin' : ''} />
             </button>
-            <a href="https://github.com/luojisama" target="_blank" class="btn-regular p-2 rounded-lg text-sm flex items-center gap-2 active:scale-95 transition">
+            <a href={`https://github.com/${USERNAME}`} target="_blank" class="btn-regular p-2 rounded-lg text-sm flex items-center gap-2 active:scale-95 transition">
                 <Icon icon="fa6-brands:github" class="text-lg" />
                 <span>个人主页</span>
             </a>
@@ -159,22 +175,21 @@ function getProxyUrl(url: string) {
                     {userData.name || userData.login}
                 </div>
                 <div class="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
-                    {userData.bio || "No bio available"}
+                    @{userData.login}
                 </div>
                 <div class="flex flex-wrap gap-4 text-xs text-neutral-600 dark:text-neutral-400">
                     <div class="flex items-center gap-1">
-                        <Icon icon="octicon:repo" />
-                        <span>{userData.public_repos} Repos</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <Icon icon="octicon:people" />
-                        <span>{userData.followers} Followers</span>
+                        <Icon icon="fa6-solid:calendar-days" />
+                        <span>{CURRENT_YEAR} 年提交次数：{yearlyCommitCount}</span>
                     </div>
                 </div>
             </div>
         </div>
 
         {#if reposData.length > 0}
+            <div class="text-sm font-semibold text-neutral-700 dark:text-neutral-200 mb-3">
+                近期活动仓库
+            </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {#each reposData as repo}
                     <a href={repo.html_url} target="_blank" class="flex flex-col p-4 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700/50 hover:border-[var(--primary)] transition-colors group h-full">
