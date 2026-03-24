@@ -4,3 +4,5 @@
 interface Window {
 	_codeBlockObserver?: MutationObserver;
 }
+
+declare module "nodemailer";

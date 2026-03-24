@@ -2,9 +2,8 @@ export interface Message {
 	id: string;
 	slug?: string;
 	parentId?: string;
-	githubIssueNumber?: number;
-	githubCommentId?: number;
 	nickname: string;
+	qq?: string;
 	content: string;
 	email?: string;
 	website?: string;

@@ -10,20 +10,21 @@ export let slug = "message-board";
 const dispatch = createEventDispatcher();
 
 let nickname = "";
+let qq = "";
 let email = "";
 let website = "";
 let content = "";
 let submitting = false;
 let contentTextarea: HTMLTextAreaElement;
 
-// Reactive avatar preview
 $: avatarPreview =
-	email && (email.match(/^\d{5,11}$/) || email.match(/^\d{5,11}@qq\.com$/))
-		? `https://q1.qlogo.cn/g?b=qq&nk=${email.replace(/@qq\.com$/, "")}&s=100`
+	qq?.match(/^\d{5,11}$/)
+		? `https://q1.qlogo.cn/g?b=qq&nk=${qq}&s=100`
 		: `https://api.dicebear.com/7.x/identicon/svg?seed=${nickname || "anonymous"}`;
 
 onMount(() => {
 	nickname = localStorage.getItem("message_nickname") || "";
+	qq = localStorage.getItem("message_qq") || "";
 	email = localStorage.getItem("message_email") || "";
 	website = localStorage.getItem("message_website") || "";
 
@@ -34,6 +35,7 @@ onMount(() => {
 
 $: if (typeof localStorage !== "undefined") {
 	if (nickname) localStorage.setItem("message_nickname", nickname);
+	if (qq) localStorage.setItem("message_qq", qq);
 	if (email) localStorage.setItem("message_email", email);
 	if (website) localStorage.setItem("message_website", website);
 }
@@ -47,6 +49,7 @@ async function handleSubmit() {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				nickname,
+				qq,
 				content,
 				email,
 				website,
@@ -57,7 +60,7 @@ async function handleSubmit() {
 
 		const data = await res.json();
 		if (res.ok) {
-			content = ""; // Clear content
+			content = "";
 			dispatch("success", data);
 		} else {
 			alert(data.error || "发送失败，请重试");
@@ -81,7 +84,7 @@ async function handleSubmit() {
             />
         </div>
         <div class="flex-1 flex flex-col gap-3">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <input 
                     type="text" 
                     bind:value={nickname}
@@ -91,10 +94,17 @@ async function handleSubmit() {
                 />
                 <input 
                     type="text" 
-                    bind:value={email}
-                    placeholder="QQ号 / 邮箱 (可选)"
+                    bind:value={qq}
+                    placeholder="QQ号 (可选)"
                     class="w-full px-4 py-2 rounded-lg bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white dark:focus:bg-black transition-all text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400"
-                    maxlength="50"
+                    maxlength="11"
+                />
+                <input 
+                    type="text" 
+                    bind:value={email}
+                    placeholder="邮箱 (可选)"
+                    class="w-full px-4 py-2 rounded-lg bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white dark:focus:bg-black transition-all text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400"
+                    maxlength="100"
                 />
                 <input 
                     type="text" 

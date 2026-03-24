@@ -1,161 +1,73 @@
-import { createAppAuth } from "@octokit/auth-app";
-import { Octokit } from "@octokit/rest";
 import type { APIRoute } from "astro";
+import nodemailer from "nodemailer";
 import { UAParser } from "ua-parser-js";
 import type { Message } from "../../types/message";
-import { addMessage, getMessages, updateMessage } from "../../utils/local-db";
+import { addMessage, getMessages } from "../../utils/local-db";
 
 export const prerender = false;
 
-type GitHubNotifyConfig = {
-	enabled: boolean;
-	owner?: string;
-	repo?: string;
-	token?: string;
-	appId?: string;
-	privateKey?: string;
-	installationId?: string;
-};
+const MAIL_HOST = process.env.SMTP_HOST;
+const MAIL_PORT = Number(process.env.SMTP_PORT || "465");
+const MAIL_SECURE = process.env.SMTP_SECURE === "true" || MAIL_PORT === 465;
+const MAIL_USER = process.env.SMTP_USER;
+const MAIL_PASS = process.env.SMTP_PASS;
+const MAIL_FROM = process.env.MAIL_FROM;
 
-let octokitClient: Octokit | null = null;
+let mailTransporter: ReturnType<typeof nodemailer.createTransport> | null =
+	null;
 
-function getGitHubNotifyConfig(): GitHubNotifyConfig {
-	const token = process.env.MESSAGES_GITHUB_TOKEN || process.env.GITHUB_TOKEN;
-	const owner = process.env.MESSAGES_REPO_OWNER;
-	const repo = process.env.MESSAGES_REPO_NAME;
-	const appId = process.env.GITHUB_APP_ID;
-	const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
-	const installationId = process.env.GITHUB_APP_INSTALLATION_ID;
-	const appAuthReady = !!appId && !!privateKey && !!installationId;
-	const tokenAuthReady = !!token;
-	const enabled = !!owner && !!repo && (appAuthReady || tokenAuthReady);
-	return {
-		enabled,
-		owner,
-		repo,
-		token,
-		appId,
-		privateKey,
-		installationId,
-	};
+function getMailTransporter() {
+	if (!MAIL_HOST || !MAIL_USER || !MAIL_PASS || !MAIL_FROM) return null;
+	if (mailTransporter) return mailTransporter;
+	mailTransporter = nodemailer.createTransport({
+		host: MAIL_HOST,
+		port: MAIL_PORT,
+		secure: MAIL_SECURE,
+		auth: {
+			user: MAIL_USER,
+			pass: MAIL_PASS,
+		},
+	});
+	return mailTransporter;
 }
 
-function getOctokitClient(cfg: GitHubNotifyConfig): Octokit {
-	if (octokitClient) return octokitClient;
-	if (cfg.appId && cfg.privateKey && cfg.installationId) {
-		octokitClient = new Octokit({
-			authStrategy: createAppAuth,
-			auth: {
-				appId: cfg.appId,
-				privateKey: cfg.privateKey.replace(/\\n/g, "\n"),
-				installationId: cfg.installationId,
-			},
-		});
-		return octokitClient;
-	}
-	octokitClient = new Octokit({
-		auth: cfg.token,
-	});
-	return octokitClient;
+function isValidEmail(value: string): boolean {
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
-function truncateText(text: string, max = 30): string {
-	if (text.length <= max) return text;
-	return `${text.slice(0, max)}...`;
+function isValidQQ(value: string): boolean {
+	return /^\d{5,11}$/.test(value);
 }
 
-function buildGitHubBody(input: {
-	nickname: string;
-	email?: string;
-	website?: string;
-	content: string;
-	ua?: string;
-	slug?: string;
-	createdAt: string;
-}): string {
-	const lines = [
-		"---",
-		`name: ${JSON.stringify(input.nickname)}`,
-		`created_at: ${JSON.stringify(input.createdAt)}`,
-	];
-	if (input.email) lines.push(`email: ${JSON.stringify(input.email)}`);
-	if (input.website) lines.push(`website: ${JSON.stringify(input.website)}`);
-	if (input.slug) lines.push(`slug: ${JSON.stringify(input.slug)}`);
-	if (input.ua) lines.push(`ua: ${JSON.stringify(input.ua)}`);
-	lines.push("---", "", input.content);
-	return lines.join("\n");
-}
-
-async function createGitHubIssue(input: {
-	nickname: string;
-	content: string;
-	email?: string;
-	website?: string;
-	ua?: string;
-	slug?: string;
-}): Promise<number> {
-	const cfg = getGitHubNotifyConfig();
-	if (!cfg.enabled || !cfg.owner || !cfg.repo) {
-		throw new Error("GitHub notify not configured");
-	}
-	const title = `${input.nickname}: ${truncateText(input.content.replace(/\s+/g, " "))}`;
-	const body = buildGitHubBody({
-		...input,
-		createdAt: new Date().toISOString(),
-	});
-	const octokit = getOctokitClient(cfg);
-	const { data } = await octokit.issues.create({
-		owner: cfg.owner,
-		repo: cfg.repo,
-		title,
-		body,
-		labels: ["message"],
-	});
-	return Number(data.number);
-}
-
-async function createGitHubComment(
-	issueNumber: number,
-	input: {
-		nickname: string;
-		content: string;
-		email?: string;
-		website?: string;
-		ua?: string;
-		slug?: string;
-	},
-): Promise<number> {
-	const cfg = getGitHubNotifyConfig();
-	if (!cfg.enabled || !cfg.owner || !cfg.repo) {
-		throw new Error("GitHub notify not configured");
-	}
-	const body = buildGitHubBody({
-		...input,
-		createdAt: new Date().toISOString(),
-	});
-	const octokit = getOctokitClient(cfg);
-	const { data } = await octokit.issues.createComment({
-		owner: cfg.owner,
-		repo: cfg.repo,
-		issue_number: issueNumber,
-		body,
-	});
-	return Number(data.id);
+function escapeHtml(value: string): string {
+	return value
+		.replaceAll("&", "&amp;")
+		.replaceAll("<", "&lt;")
+		.replaceAll(">", "&gt;")
+		.replaceAll('"', "&quot;")
+		.replaceAll("'", "&#39;");
 }
 
 function findMessageById(id: string, messages: Message[]): Message | undefined {
 	return messages.find((item) => item.id === id);
 }
 
-function findRootMessageForReply(
-	parentId: string,
-	messages: Message[],
-): Message | undefined {
-	let current = findMessageById(parentId, messages);
-	while (current?.parentId) {
-		current = findMessageById(current.parentId, messages);
-	}
-	return current;
+async function sendEmailIfNeeded(input: {
+	to?: string;
+	subject: string;
+	text: string;
+	html: string;
+}) {
+	if (!input.to || !isValidEmail(input.to)) return;
+	const transporter = getMailTransporter();
+	if (!transporter) return;
+	await transporter.sendMail({
+		from: MAIL_FROM,
+		to: input.to,
+		subject: input.subject,
+		text: input.text,
+		html: input.html,
+	});
 }
 
 export const GET: APIRoute = async ({ request }) => {
@@ -173,7 +85,7 @@ export const GET: APIRoute = async ({ request }) => {
 export const POST: APIRoute = async ({ request }) => {
 	try {
 		const body = await request.json();
-		const { nickname, content, email, website, parentId, slug } = body;
+		const { nickname, qq, content, email, website, parentId, slug } = body;
 		const allMessages = await getMessages();
 
 		const uaString = request.headers.get("user-agent") || "";
@@ -201,13 +113,29 @@ export const POST: APIRoute = async ({ request }) => {
 			});
 		}
 
+		const finalQQ = qq ? String(qq).trim() : undefined;
+		if (finalQQ && !isValidQQ(finalQQ)) {
+			return new Response(JSON.stringify({ error: "QQ号格式不正确" }), {
+				status: 400,
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+		}
+
+		const finalEmail = email ? String(email).trim() : undefined;
+		if (finalEmail && !isValidEmail(finalEmail)) {
+			return new Response(JSON.stringify({ error: "邮箱格式不正确" }), {
+				status: 400,
+				headers: {
+					"Content-Type": "application/json",
+				},
+			});
+		}
+
 		let avatar = `https://api.dicebear.com/7.x/identicon/svg?seed=${nickname}`;
-		if (email) {
-			const qqMatch = email.match(/^(\d{5,11})(@qq\.com)?$/);
-			if (qqMatch) {
-				const qq = qqMatch[1];
-				avatar = `https://q1.qlogo.cn/g?b=qq&nk=${qq}&s=100`;
-			}
+		if (finalQQ) {
+			avatar = `https://q1.qlogo.cn/g?b=qq&nk=${finalQQ}&s=100`;
 		}
 
 		let finalWebsite = website ? website.slice(0, 100) : undefined;
@@ -219,67 +147,11 @@ export const POST: APIRoute = async ({ request }) => {
 			finalWebsite = `https://${finalWebsite}`;
 		}
 
-		let githubIssueNumber: number | undefined;
-		let githubCommentId: number | undefined;
-		if (getGitHubNotifyConfig().enabled) {
-			try {
-				if (parentId) {
-					const root = findRootMessageForReply(parentId, allMessages);
-					if (root) {
-						if (!root.githubIssueNumber) {
-							root.githubIssueNumber = await createGitHubIssue({
-								nickname: root.nickname.slice(0, 20),
-								content: root.content.slice(0, 500),
-								email: root.email ? root.email.slice(0, 50) : undefined,
-								website: root.website,
-								slug: root.slug || slug,
-							});
-							await updateMessage(root.id, (message) => ({
-								...message,
-								githubIssueNumber: root.githubIssueNumber,
-							}));
-						}
-						githubIssueNumber = root.githubIssueNumber;
-						githubCommentId = await createGitHubComment(
-							root.githubIssueNumber,
-							{
-								nickname: nickname.slice(0, 20),
-								content: content.slice(0, 500),
-								email: email ? email.slice(0, 50) : undefined,
-								website: finalWebsite,
-								ua: uaString,
-								slug,
-							},
-						);
-					} else {
-						githubIssueNumber = await createGitHubIssue({
-							nickname: nickname.slice(0, 20),
-							content: content.slice(0, 500),
-							email: email ? email.slice(0, 50) : undefined,
-							website: finalWebsite,
-							ua: uaString,
-							slug,
-						});
-					}
-				} else {
-					githubIssueNumber = await createGitHubIssue({
-						nickname: nickname.slice(0, 20),
-						content: content.slice(0, 500),
-						email: email ? email.slice(0, 50) : undefined,
-						website: finalWebsite,
-						ua: uaString,
-						slug,
-					});
-				}
-			} catch (error) {
-				console.error("GitHub notify failed:", error);
-			}
-		}
-
 		const newMessage = await addMessage({
 			nickname: nickname.slice(0, 20),
+			qq: finalQQ,
 			content: content.slice(0, 500),
-			email: email ? email.slice(0, 50) : undefined,
+			email: finalEmail ? finalEmail.slice(0, 100) : undefined,
 			website: finalWebsite,
 			avatar,
 			parentId,
@@ -287,9 +159,33 @@ export const POST: APIRoute = async ({ request }) => {
 			os: osName,
 			browser: browserName,
 			device: deviceName,
-			githubIssueNumber,
-			githubCommentId,
 		});
+
+		try {
+			await sendEmailIfNeeded({
+				to: newMessage.email,
+				subject: "留言提交成功通知",
+				text: `你好 ${newMessage.nickname}，你的留言已提交成功。\n\n内容：${newMessage.content}\n\n页面：${newMessage.slug || "message-board"}`,
+				html: `<p>你好 ${escapeHtml(newMessage.nickname)}，你的留言已提交成功。</p><p>内容：${escapeHtml(newMessage.content)}</p><p>页面：${escapeHtml(newMessage.slug || "message-board")}</p>`,
+			});
+			if (parentId) {
+				const parentMessage = findMessageById(parentId, allMessages);
+				if (
+					parentMessage?.email &&
+					isValidEmail(parentMessage.email) &&
+					parentMessage.email !== newMessage.email
+				) {
+					await sendEmailIfNeeded({
+						to: parentMessage.email,
+						subject: "你收到一条新的留言回复",
+						text: `你好 ${parentMessage.nickname}，${newMessage.nickname} 回复了你。\n\n回复内容：${newMessage.content}\n\n原留言：${parentMessage.content}`,
+						html: `<p>你好 ${escapeHtml(parentMessage.nickname)}，${escapeHtml(newMessage.nickname)} 回复了你。</p><p>回复内容：${escapeHtml(newMessage.content)}</p><p>原留言：${escapeHtml(parentMessage.content)}</p>`,
+					});
+				}
+			}
+		} catch (mailError) {
+			console.error("Mail notify failed:", mailError);
+		}
 
 		return new Response(JSON.stringify(newMessage), {
 			status: 201,
