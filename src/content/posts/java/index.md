@@ -693,3 +693,337 @@ public class Cal {
     }
 }
 ```
+
+---
+
+# 访问修饰符
+
+Java 提供四种访问权限修饰符，控制类、属性、方法的可见范围：
+
+| 修饰符        | 同一个类 | 同一个包 | 不同包的子类 | 不同包的其他类 |
+| ----------- | :----: | :----: | :--------: | :---------: |
+| `public`    | ✓      | ✓      | ✓          | ✓           |
+| `protected` | ✓      | ✓      | ✓          |             |
+| 默认（不写）    | ✓      | ✓      |            |             |
+| `private`   | ✓      |        |            |             |
+
+---
+
+# 封装
+
+把类的信息隐藏在类内部，通过公共接口对外提供访问，并在方法中对数据进行合法性校验。
+
+**步骤**：
+
+1. 用 `private` 私有化属性
+2. 提供 `public` 的 `get` / `set` 方法
+
+```java
+public class Student {
+    private String name;
+    private int age;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        if (age >= 0 && age <= 150) {
+            this.age = age;
+        } else {
+            this.age = 0;
+            System.out.println("请重新输入");
+        }
+    }
+}
+```
+
+---
+
+# static 关键字
+
+`static` 可以修饰属性、方法、代码块、内部类，被修饰后属于类本身，而不是某个对象。
+
+```java
+public class Student {
+    static String school; // 静态属性，所有对象共享
+    int height;           // 普通属性，每个对象独有
+
+    // 静态方法，通过类名直接调用
+    public static void show() {
+        // 静态方法中不能访问非静态属性或方法
+        System.out.println(school);
+    }
+
+    // 静态代码块，类加载时自动执行一次
+    static {
+        System.out.println("Student 类加载");
+    }
+
+    // 静态内部类
+    public static class Inner {
+        int a;
+    }
+}
+
+// 通过类名直接调用静态成员
+Student.school = "北大";
+Student.show();
+```
+
+---
+
+# final 关键字
+
+`final` 表示"不可改变"，可以修饰类、属性、方法：
+
+- **修饰类**：该类不能被继承（叶子类）
+- **修饰属性**：变为常量，声明时必须赋值
+- **修饰方法**：该方法不能被子类重写
+
+```java
+public final class Teacher {
+    final int MAX = 100;        // 常量，不可修改
+    final char SEX = '男';
+
+    public final void show() { // 不可被子类重写
+        System.out.println("老师");
+    }
+}
+```
+
+---
+
+# 继承
+
+## 基本语法
+
+使用 `extends` 关键字让子类继承父类，子类会拥有父类所有非私有的属性和方法。Java 只支持**单继承**（一个类只能有一个父类），所有类都直接或间接继承自 `Object`。
+
+```java
+// 父类
+public class Pet {
+    String name;
+    int health;
+
+    public void eat() {
+        System.out.println(name + "在吃东西");
+    }
+}
+
+// 子类
+public class Dog extends Pet {
+    String strain; // 子类特有属性
+
+    public void work() {
+        System.out.println(name + "能看大门"); // 继承自父类的属性
+    }
+}
+
+// 使用
+Dog dog = new Dog();
+dog.name   = "kobe";
+dog.health = 60;
+dog.eat();   // 调用继承来的方法
+dog.work();  // 调用子类自己的方法
+```
+
+## super 关键字
+
+当子类与父类存在同名属性或方法时，可以用 `super` 明确访问父类的成员：
+
+```java
+public class Dog extends Pet {
+    String name = "man"; // 子类同名属性
+
+    public void work() {
+        System.out.println(this.name);  // 先找子类：man
+        System.out.println(super.name); // 找父类：kobe
+    }
+}
+```
+
+在子类构造方法中，可用 `super(参数)` 调用父类构造方法，**必须写在第一行**：
+
+```java
+public class Employee extends Person {
+    double sal;
+
+    public Employee(String name, int age, double sal) {
+        super(name, age); // 调用父类构造方法，必须第一行
+        this.sal = sal;
+    }
+
+    public void work() {
+        super.show(); // 调用父类方法
+        System.out.println("工资：" + this.sal);
+    }
+}
+```
+
+## 方法重写
+
+子类对父类方法的重新实现，让子类在继承父类结构的同时拥有自己的行为。
+
+**规则**：
+- 方法名、参数列表与父类一致
+- 访问修饰符不能比父类更严格（可以更宽松）
+- 方法体不同
+
+```java
+public class Person {
+    public void run() {
+        System.out.println("人类会跑步");
+    }
+}
+
+public class Employee extends Person {
+    @Override
+    public void run() {       // 重写父类方法
+        System.out.println("员工竞走");
+    }
+}
+```
+
+---
+
+# 抽象类
+
+## 是什么
+
+用 `abstract` 修饰的类叫**抽象类**，用 `abstract` 修饰的方法叫**抽象方法**。
+
+**特点**：
+- 抽象方法只有声明，没有方法体
+- 抽象方法必须定义在抽象类中
+- 抽象类中可以有普通方法
+- 抽象类**不能被实例化**（不能 `new`）
+- 子类继承抽象类，必须重写所有抽象方法，否则子类也要声明为抽象类
+
+```java
+public abstract class Users {
+    // 抽象方法，没有方法体
+    public abstract void show();
+
+    // 普通方法，可以有实现
+    public void hello() {
+        System.out.println("你好");
+    }
+}
+
+// 子类必须实现所有抽象方法
+public class BookUsers extends Users {
+    @Override
+    public void show() {
+        System.out.println("书籍用户");
+    }
+}
+
+// 使用
+// Users u = new Users(); // 错误，抽象类不能实例化
+BookUsers bu = new BookUsers();
+bu.show();
+```
+
+---
+
+# 多态
+
+## 是什么
+
+同一个方法调用，因对象类型不同而产生不同的结果，就是**多态**。
+
+多态建立在**继承**和**方法重写**的基础上，通过**父类引用指向子类对象**来实现。
+
+## 向上转型（子类 → 父类）
+
+```java
+// 父类引用 = 子类对象（自动转型）
+Pet p = new Dog();
+p.eat(); // 调用的是 Dog 重写后的 eat()
+p.run();
+
+// 通过父类引用调用不到子类特有的方法
+// p.work(); // 错误，Pet 中没有 work()
+```
+
+## 向下转型（父类 → 子类）
+
+父类引用转回子类类型，需要强制转换，转换失败会抛出 `ClassCastException`：
+
+```java
+Pet p = new Dog();
+
+// 强制转换，大转小
+Dog d = (Dog) p;
+d.work(); // 可以调用 Dog 的特有方法
+```
+
+## instanceof 运算符
+
+在强制转换前，用 `instanceof` 判断对象的实际类型，保证代码健壮性：
+
+```java
+Pet p = new Dog();
+
+if (p instanceof Dog) {
+    Dog dog = (Dog) p;
+    dog.work();
+} else if (p instanceof Cat) {
+    Cat cat = (Cat) p;
+    cat.play();
+}
+```
+
+## 多态的三种体现
+
+**1. 父类引用指向子类对象**
+
+```java
+Person p = new Student();
+p.show(); // 执行 Student 的 show()
+
+p = new Teacher();
+p.show(); // 执行 Teacher 的 show()
+```
+
+**2. 父类类型作为方法参数**
+
+形参声明为父类类型，传入子类对象，方法内部自动调用对应的重写方法：
+
+```java
+public class Master {
+    // 形参为父类，实参传子类对象
+    public void food(Pet pet) {
+        pet.eat();
+    }
+}
+
+Master ma = new Master();
+ma.food(new Dog()); // 匿名对象
+ma.food(new Cat());
+```
+
+**3. 父类类型作为返回值**
+
+方法声明返回父类类型，实际返回子类对象：
+
+```java
+public class PetAgree {
+    public Pet buy() {
+        return new Dog(); // 返回子类对象
+    }
+}
+
+PetAgree pa = new PetAgree();
+Pet pet = pa.buy();
+pet.eat(); // 调用 Dog 的 eat()
+```
