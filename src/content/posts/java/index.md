@@ -1027,3 +1027,4 @@ PetAgree pa = new PetAgree();
 Pet pet = pa.buy();
 pet.eat(); // 调用 Dog 的 eat()
 ```
+# 接口
