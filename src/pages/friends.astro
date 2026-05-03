@@ -7,6 +7,7 @@ import { getEntry } from "astro:content";
 import { render } from "astro:content";
 import Comment from "@components/Comment.astro";
 import Markdown from "@components/misc/Markdown.astro";
+import { Icon } from "astro-icon/components";
 import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 
@@ -17,6 +18,22 @@ if (!friendsPost) {
 }
 
 const { Content } = await render(friendsPost);
+
+const myFriendLinkItem = {
+	title: "白咲のBLOG",
+	imgurl: "https://blog.shiro.team/avatar.png",
+	desc: "歇斯底里是崩溃，底里歇斯是美味.",
+	siteurl: "https://blog.shiro.team",
+	tags: [" "],
+};
+
+const myFriendLink = `{
+	title: "${myFriendLinkItem.title}",
+	imgurl: "${myFriendLinkItem.imgurl}",
+	desc: "${myFriendLinkItem.desc}",
+	siteurl: "${myFriendLinkItem.siteurl}",
+	tags: [" "],
+},`;
 
 const items = [
 	{
@@ -35,8 +52,8 @@ const items = [
 	},
 	{
 		title: "𝙕𝙚𝙡𝙡𝙤𝙣的博客",
-		imgurl: "https://www.zellon.top/_astro/InoryAvater.PMGgR1yb_Z28yWCD.webp",
-		desc: "信过眼，浮华几何时，剩培植根心，等闲千岁。",
+		imgurl: "https://www.zellon.top/avatar.jpg",
+		desc: "告别过去，是为了走向未来",
 		siteurl: "https://www.zellon.top",
 		tags: [" "],
 	},
@@ -60,6 +77,36 @@ const items = [
     <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
         <div class="card-base z-10 px-9 py-6 relative w-full ">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 my-4">
+                <div class="flex flex-nowrap items-stretch h-28 gap-4 rounded-[var(--radius-large)]" data-copy-friend-link-card>
+                    <div class="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-200 dark:bg-zinc-900">
+                        <img src={myFriendLinkItem.imgurl} alt="站点头像" class="w-full h-full object-cover">
+                    </div>
+                    <div class="grow w-full">
+                        <div class="font-bold transition text-lg text-neutral-900 dark:text-neutral-100 mb-1">{myFriendLinkItem.title}</div>
+                        <div class="text-50 text-sm font-medium">{myFriendLinkItem.desc}</div>
+                        <div class:list={["items-center", {"flex": true, "hidden md:flex" : false}]}>
+                            <div class="flex flex-row flex-nowrap items-center">
+                                <span class="transition text-50 text-sm font-medium" data-copy-status aria-live="polite">我的友链</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        id="copy-my-friend-link"
+                        type="button"
+                        data-copy={myFriendLink}
+                        data-label="一键复制我的友链"
+                        data-status-label="我的友链"
+                        data-success-label="已复制"
+                        data-failure-label="复制失败"
+                        data-copy-friend-link-button
+                        aria-label="一键复制我的友链"
+                        title="一键复制我的友链"
+                        class="flex btn-regular w-[3.25rem] flex-shrink-0 rounded-lg bg-[var(--enter-btn-bg)] hover:bg-[var(--enter-btn-bg-hover)] active:bg-[var(--enter-btn-bg-active)] active:scale-95 disabled:pointer-events-none disabled:opacity-70"
+                    >
+                        <Icon name="material-symbols:content-copy-outline-rounded" class="transition text-[var(--primary)] text-3xl mx-auto" data-copy-icon></Icon>
+                        <Icon name="material-symbols:check-rounded" class="hidden transition text-[var(--primary)] text-3xl mx-auto" data-success-icon></Icon>
+                    </button>
+                </div>
                 {items.map((item) => (   
                     <div class="flex flex-nowrap items-stretch h-28 gap-4 rounded-[var(--radius-large)]">
                         <div class="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-200 dark:bg-zinc-900">
