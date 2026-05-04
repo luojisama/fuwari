@@ -1,13 +1,12 @@
-***
-
+---
 title: LoveLive 聚合 API 介绍
 published: 2026-05-04
 description: 一个跑在 Cloudflare Workers 上的 LoveLive 聚合 API，提供角色、生日、活动、音乐等查询接口
 image: ""
-tags: \["LoveLive","Cloudflare Workers","API","TypeScript"]
+tags: ["LoveLive", "Cloudflare Workers", "API", "TypeScript"]
 category: 项目分享
 draft: false
-------------
+---
 
 > API 在线地址：<a href="http://llapi.shiro.team/" target="_blank"><http://llapi.shiro.team/></a>\
 > 前端演示页（可视化测试所有接口）：[LoveLive 聚合 API · 演示](https://lad.shiro.team/)
