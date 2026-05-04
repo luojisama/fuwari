@@ -104,6 +104,8 @@ const bannerOffset =
 				  media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`}
 			/>
 		))}
+		<link rel="stylesheet" href={url("/fonts/lxgw-wenkai-screen/font.css")} />
+		<link rel="stylesheet" href={url("/fonts/maoken-zhuyuan-ti/font.css")} />
 
 		<!-- Set the theme before the page is rendered to avoid a flash -->
 		<script is:inline define:vars={{DEFAULT_THEME, LIGHT_MODE, DARK_MODE, AUTO_MODE, BANNER_HEIGHT_EXTEND, PAGE_WIDTH, configHue}}>
@@ -162,12 +164,6 @@ const bannerOffset =
 }}>
 :root {
 	--font-body-fallback: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
-	--font-body: var(--font-body-fallback);
-	--font-heading: var(--font-body-fallback);
-	--font-brand: var(--font-body-fallback);
-}
-
-html.custom-fonts-ready {
 	--font-body: "LXGW WenKai Screen", var(--font-body-fallback);
 	--font-heading: "LXGW WenKai Screen", var(--font-body-fallback);
 	--font-brand: "MaokenZhuyuanTi", "LXGW WenKai Screen", var(--font-body-fallback);
@@ -257,94 +253,6 @@ import {
 	MAIN_PANEL_OVERLAPS_BANNER_HEIGHT
 } from "../constants/constants";
 import { siteConfig } from '../config';
-const CUSTOM_FONTS_READY_CLASS = "custom-fonts-ready";
-const lxgwFontCssUrl = "/fonts/lxgw-wenkai-screen/font.css";
-const maokenFontCssUrl = "/fonts/maoken-zhuyuan-ti/font.css";
-let customFontLoadPromise: Promise<void> | null = null;
-
-function scheduleCustomFontLoad(callback: () => void) {
-	const win = window as typeof window & {
-		requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
-	};
-
-	if (win.requestIdleCallback) {
-		win.requestIdleCallback(callback, { timeout: 2500 });
-		return;
-	}
-
-	window.setTimeout(callback, 1200);
-}
-
-function getFontSampleText() {
-	return (document.body?.innerText || "白咲のBLOG").replace(/\s+/g, " ").slice(0, 160);
-}
-
-function loadStylesheetOnce(href: string) {
-	return new Promise<void>((resolve, reject) => {
-		const stylesheetUrl = new URL(href, document.baseURI).href;
-		const existingLink = Array.from(document.querySelectorAll<HTMLLinkElement>("link[data-custom-font-stylesheet]"))
-			.find(link => link.href === stylesheetUrl);
-
-		if (existingLink) {
-			resolve();
-			return;
-		}
-
-		const link = document.createElement("link");
-		link.rel = "stylesheet";
-		link.href = href;
-		link.dataset.customFontStylesheet = "true";
-		link.addEventListener("load", () => resolve(), { once: true });
-		link.addEventListener("error", () => reject(new Error(`Failed to load stylesheet: ${href}`)), { once: true });
-		document.head.append(link);
-	});
-}
-
-function loadCustomFonts() {
-	if (customFontLoadPromise || document.documentElement.classList.contains(CUSTOM_FONTS_READY_CLASS)) {
-		return customFontLoadPromise;
-	}
-
-	customFontLoadPromise = Promise.all([
-		loadStylesheetOnce(lxgwFontCssUrl),
-		loadStylesheetOnce(maokenFontCssUrl),
-	])
-		.then(async () => {
-			if (document.fonts) {
-				await Promise.allSettled([
-					document.fonts.load('1em "LXGW WenKai Screen"', getFontSampleText()),
-					document.fonts.load('1em "MaokenZhuyuanTi"', "白咲のBLOG"),
-				]);
-			}
-			document.documentElement.classList.add(CUSTOM_FONTS_READY_CLASS);
-		})
-		.catch(error => {
-			customFontLoadPromise = null;
-			console.warn("Failed to load custom fonts:", error);
-		});
-
-	return customFontLoadPromise;
-}
-
-function initCustomFontLoading() {
-	if (document.documentElement.classList.contains(CUSTOM_FONTS_READY_CLASS) || customFontLoadPromise) {
-		return;
-	}
-
-	const startLoading = () => {
-		scheduleCustomFontLoad(() => {
-			void loadCustomFonts();
-		});
-	};
-
-	if (document.readyState === "complete") {
-		startLoading();
-	} else {
-		window.addEventListener("load", startLoading, { once: true });
-	}
-}
-
-initCustomFontLoading();
 
 /* TODO This is a temporary solution for style flicker issue when the transition is activated */
 /* issue link: https://github.com/withastro/astro/issues/8711, the solution get from here too */
