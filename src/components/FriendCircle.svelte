@@ -51,7 +51,7 @@ onMount(async () => {
 
 <section class="card-base mt-4 px-6 md:px-9 py-6 relative overflow-hidden">
     <div class="flex items-center justify-between gap-4 mb-5">
-        <div class="font-bold transition text-xl text-90 relative ml-3
+        <div class="font-accent font-bold transition text-xl text-90 relative ml-3
             before:w-1 before:h-5 before:rounded-md before:bg-[var(--primary)]
             before:absolute before:-left-3 before:top-[0.35rem]"
         >

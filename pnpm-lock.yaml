@@ -65,6 +65,12 @@ importers:
       axios:
         specifier: ^1.9.0
         version: 1.9.0
+      cn-fontsource-lxgw-wen-kai-screen:
+        specifier: ^1.0.6
+        version: 1.0.6
+      cn-fontsource-maoken-zhuyuan-ti-regular:
+        specifier: ^1.0.1
+        version: 1.0.1
       hastscript:
         specifier: ^9.0.1
         version: 9.0.1
@@ -2222,6 +2228,12 @@ packages:
   cluster-key-slot@1.1.2:
     resolution: {integrity: sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==}
     engines: {node: '>=0.10.0'}
+
+  cn-fontsource-lxgw-wen-kai-screen@1.0.6:
+    resolution: {integrity: sha512-bAgU4SCHQghrf2OGwR71qbe4kMQ7tyDmyMHZhlqYe7FowUaxrQ9zApDnqPOpIA6gzUVzzCBrhQ6f4xBUT2/36Q==}
+
+  cn-fontsource-maoken-zhuyuan-ti-regular@1.0.1:
+    resolution: {integrity: sha512-/QhyZTBdq0i4pwzGtsjsIjgd0FmWD5sttYo3bCHlUu1/gmd1m6+XIUcVE/CQlLgF036GiB75mPD8FFvLEyCWsw==}
 
   color-convert@2.0.1:
     resolution: {integrity: sha512-RRECPsj7iu/xb5oKYcsFHSppFNnsj/52OVTRKb4zP5onXwVF3zVmmToNcOfGC+CRDpfK/U584fMg38ZHCaElKQ==}
@@ -7775,6 +7787,10 @@ snapshots:
   clsx@2.1.1: {}
 
   cluster-key-slot@1.1.2: {}
+
+  cn-fontsource-lxgw-wen-kai-screen@1.0.6: {}
+
+  cn-fontsource-maoken-zhuyuan-ti-regular@1.0.1: {}
 
   color-convert@2.0.1:
     dependencies:

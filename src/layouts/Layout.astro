@@ -1,7 +1,6 @@
 ---
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
+import "cn-fontsource-lxgw-wen-kai-screen/font.css";
+import "cn-fontsource-maoken-zhuyuan-ti-regular/font.css";
 
 import { profileConfig, siteConfig } from "@/config";
 import ConfigCarrier from "@components/ConfigCarrier.astro";
@@ -164,6 +163,49 @@ const bannerOffset =
 	'banner-height-home': `${BANNER_HEIGHT_HOME}vh`,
 	'banner-height': `${BANNER_HEIGHT}vh`,
 }}>
+:root {
+	--font-body: "LXGW WenKai Screen", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+	--font-heading: "LXGW WenKai Screen", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+	--font-brand: "MaokenZhuyuanTi", "LXGW WenKai Screen", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+html,
+body {
+	font-family: var(--font-body);
+	letter-spacing: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-accent {
+	font-family: var(--font-heading);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-weight: 500;
+}
+
+#navbar-wrapper a[href="/"] {
+	font-family: var(--font-brand);
+	font-weight: 400;
+}
+
+code,
+pre,
+kbd,
+samp {
+	font-family: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
 @tailwind components;
 @layer components {
 	.enable-banner.is-home #banner-wrapper {
