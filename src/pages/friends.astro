@@ -6,7 +6,13 @@ import MainGridLayout from "../layouts/MainGridLayout.astro";
 import { getEntry } from "astro:content";
 import { render } from "astro:content";
 import Comment from "@components/Comment.astro";
+import FriendCircle from "@components/FriendCircle.svelte";
 import Markdown from "@components/misc/Markdown.astro";
+import {
+	friendLinks,
+	myFriendLink,
+	myFriendLinkItem,
+} from "@constants/friends";
 import { Icon } from "astro-icon/components";
 import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
@@ -18,60 +24,6 @@ if (!friendsPost) {
 }
 
 const { Content } = await render(friendsPost);
-
-const myFriendLinkItem = {
-	title: "白咲のBLOG",
-	imgurl: "https://blog.shiro.team/avatar.png",
-	desc: "歇斯底里是崩溃，底里歇斯是美味.",
-	siteurl: "https://blog.shiro.team",
-	tags: [" "],
-};
-
-const myFriendLink = `{
-	title: "${myFriendLinkItem.title}",
-	imgurl: "${myFriendLinkItem.imgurl}",
-	desc: "${myFriendLinkItem.desc}",
-	siteurl: "${myFriendLinkItem.siteurl}",
-	tags: [" "],
-},`;
-
-const items = [
-	{
-		title: "Astro",
-		imgurl: "https://avatars.githubusercontent.com/u/44914786?s=48&v=4",
-		desc: "The web framework for content-driven websites. ⭐️ Star to support our work!",
-		siteurl: "https://github.com/withastro/astro",
-		tags: [" "],
-	},
-	{
-		title: "时歌的博客",
-		imgurl: "https://www.lapis.cafe/avatar.webp",
-		desc: "理解以真实为本，但真实本身并不会自动呈现",
-		siteurl: "https://www.lapis.cafe",
-		tags: [" "],
-	},
-	{
-		title: "𝙕𝙚𝙡𝙡𝙤𝙣的博客",
-		imgurl: "https://www.zellon.top/avatar.jpg",
-		desc: "告别过去，是为了走向未来",
-		siteurl: "https://www.zellon.top",
-		tags: [" "],
-	},
-	{
-		title: "mikann_OWQ",
-		imgurl: "https://mikann.fun/avatar.webp",
-		desc: "是一位超级无敌可爱美少女",
-		siteurl: "https://www.mikann.fun",
-		tags: [" "],
-	},
-	{
-		title: "Viki 写东西的地方",
-		imgurl: "https://blog.viki.moe/avatar.png",
-		desc: "生活需要记录。",
-		siteurl: "https://blog.viki.moe",
-		tags: [" "],
-	},
-];
 ---
 <MainGridLayout title={i18n(I18nKey.friends)} description={i18n(I18nKey.friends)}>
     <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
@@ -107,7 +59,7 @@ const items = [
                         <Icon name="material-symbols:check-rounded" class="hidden transition text-[var(--primary)] text-3xl mx-auto" data-success-icon></Icon>
                     </button>
                 </div>
-                {items.map((item) => (   
+                {friendLinks.map((item) => (   
                     <div class="flex flex-nowrap items-stretch h-28 gap-4 rounded-[var(--radius-large)]">
                         <div class="w-28 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-200 dark:bg-zinc-900">
                             <img src={item.imgurl} alt="站点头像" class="w-full h-full object-cover">
@@ -141,6 +93,8 @@ const items = [
             </Markdown>
         </div>
     </div>
+
+    <FriendCircle client:visible />
 
     <Comment />
 </MainGridLayout>
