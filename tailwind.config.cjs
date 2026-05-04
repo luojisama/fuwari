@@ -6,14 +6,7 @@ module.exports = {
 	theme: {
 		extend: {
 			fontFamily: {
-				sans: [
-					"LXGW WenKai Screen",
-					"PingFang SC",
-					"Hiragino Sans GB",
-					"Microsoft YaHei",
-					"sans-serif",
-					...defaultTheme.fontFamily.sans,
-				],
+				sans: ["var(--font-body)", ...defaultTheme.fontFamily.sans],
 			},
 		},
 	},

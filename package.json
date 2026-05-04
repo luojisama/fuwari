@@ -36,8 +36,6 @@
 		"astro": "5.15.8",
 		"astro-icon": "^1.1.5",
 		"axios": "^1.9.0",
-		"cn-fontsource-lxgw-wen-kai-screen": "^1.0.6",
-		"cn-fontsource-maoken-zhuyuan-ti-regular": "^1.0.1",
 		"hastscript": "^9.0.1",
 		"ioredis": "^5.9.2",
 		"katex": "^0.16.22",
