@@ -87,8 +87,8 @@ onMount(() => {
     {/if}
 
     <!-- Input Area -->
-    <div class="card-base p-6 border border-neutral-100 dark:border-neutral-800">
-        <div class="flex items-center gap-2 mb-4 font-bold text-lg text-neutral-900 dark:text-neutral-100">
+    <div class="card-base !overflow-visible p-6 border border-black/5 dark:border-white/5">
+        <div class="flex items-center gap-2 mb-4 font-bold text-lg text-90">
             <Icon icon="fa6-solid:pen-to-square" class="text-[var(--primary)]" />
             留下你的足迹
         </div>
@@ -100,10 +100,10 @@ onMount(() => {
     <div class="flex flex-col gap-4">
         {#if loading}
             <div class="flex justify-center py-10">
-                <Icon icon="eos-icons:loading" class="text-3xl text-neutral-400" />
+                <Icon icon="eos-icons:loading" class="text-3xl text-30" />
             </div>
         {:else if messages.length === 0}
-            <div class="flex flex-col items-center justify-center py-10 text-neutral-400 gap-2">
+            <div class="flex flex-col items-center justify-center py-10 text-30 gap-2">
                 <Icon icon="fa6-solid:comment-slash" class="text-3xl" />
                 <span>还没有留言，快来抢沙发吧！</span>
             </div>

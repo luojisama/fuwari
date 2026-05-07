@@ -1,13 +1,15 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
-import { createEventDispatcher, onMount } from "svelte";
+import { createEventDispatcher, onMount, tick } from "svelte";
+import EmojiPicker from "./EmojiPicker.svelte";
 
 export let parentId: string | undefined = undefined;
-export let placeholder = "说点什么吧... (支持 Markdown 和 ||隐藏内容||)";
+export let placeholder = "说点什么吧... (支持 Markdown、表情和 ||隐藏内容||)";
 export let autofocus = false;
 export let slug = "message-board";
 
 const dispatch = createEventDispatcher();
+const MAX_CONTENT_LENGTH = 500;
 
 let nickname = "";
 let qq = "";
@@ -71,11 +73,29 @@ async function handleSubmit() {
 		submitting = false;
 	}
 }
+
+async function handleEmojiSelect(event: CustomEvent<string>) {
+	const emoji = event.detail;
+	if (!emoji || !contentTextarea) return;
+
+	const start = contentTextarea.selectionStart ?? content.length;
+	const end = contentTextarea.selectionEnd ?? content.length;
+	const before = content.slice(0, start);
+	const after = content.slice(end);
+	const nextContent = `${before}${emoji}${after}`.slice(0, MAX_CONTENT_LENGTH);
+	const nextCursor = Math.min(start + emoji.length, nextContent.length);
+
+	content = nextContent;
+	await tick();
+
+	contentTextarea.focus();
+	contentTextarea.setSelectionRange(nextCursor, nextCursor);
+}
 </script>
 
 <div class="flex flex-col gap-4">
     <div class="flex flex-col sm:flex-row gap-4">
-        <div class="w-16 h-16 rounded-xl bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex-shrink-0 border border-neutral-200 dark:border-neutral-700 shadow-sm self-start">
+        <div class="w-16 h-16 rounded-[var(--radius-large)] bg-[var(--btn-regular-bg)] overflow-hidden flex-shrink-0 border border-black/5 dark:border-white/5 shadow-sm self-start">
             <img 
                 src={avatarPreview} 
                 alt="Avatar" 
@@ -88,28 +108,28 @@ async function handleSubmit() {
                     type="text" 
                     bind:value={nickname}
                     placeholder="昵称 (必填)"
-                    class="w-full px-4 py-2 rounded-lg bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white dark:focus:bg-black transition-all text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400"
+                    class="w-full px-4 py-2 rounded-lg bg-black/[0.03] dark:bg-white/[0.03] border-none focus:ring-2 focus:ring-[var(--primary)] transition-all text-90 placeholder:text-neutral-400 outline-none"
                     maxlength="20"
                 />
                 <input 
                     type="text" 
                     bind:value={qq}
                     placeholder="QQ号 (可选)"
-                    class="w-full px-4 py-2 rounded-lg bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white dark:focus:bg-black transition-all text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400"
+                    class="w-full px-4 py-2 rounded-lg bg-black/[0.03] dark:bg-white/[0.03] border-none focus:ring-2 focus:ring-[var(--primary)] transition-all text-90 placeholder:text-neutral-400 outline-none"
                     maxlength="11"
                 />
                 <input 
                     type="text" 
                     bind:value={email}
                     placeholder="邮箱 (可选)"
-                    class="w-full px-4 py-2 rounded-lg bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white dark:focus:bg-black transition-all text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400"
+                    class="w-full px-4 py-2 rounded-lg bg-black/[0.03] dark:bg-white/[0.03] border-none focus:ring-2 focus:ring-[var(--primary)] transition-all text-90 placeholder:text-neutral-400 outline-none"
                     maxlength="100"
                 />
                 <input 
                     type="text" 
                     bind:value={website}
                     placeholder="个人网站 (可选)"
-                    class="w-full px-4 py-2 rounded-lg bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white dark:focus:bg-black transition-all text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400"
+                    class="w-full px-4 py-2 rounded-lg bg-black/[0.03] dark:bg-white/[0.03] border-none focus:ring-2 focus:ring-[var(--primary)] transition-all text-90 placeholder:text-neutral-400 outline-none"
                     maxlength="100"
                 />
             </div>
@@ -118,17 +138,23 @@ async function handleSubmit() {
                 bind:value={content}
                 {placeholder}
                 rows="3"
-                class="w-full px-4 py-2 rounded-lg bg-neutral-50/50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:bg-white dark:focus:bg-black transition-all resize-none text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400"
-                maxlength="500"
+                class="w-full px-4 py-2 rounded-lg bg-black/[0.03] dark:bg-white/[0.03] border-none focus:ring-2 focus:ring-[var(--primary)] transition-all resize-none text-90 placeholder:text-neutral-400 outline-none"
+                maxlength={MAX_CONTENT_LENGTH}
             ></textarea>
         </div>
     </div>
     
-    <div class="flex justify-end">
+    <div class="flex items-center justify-between gap-3">
+        <div class="flex min-w-0 items-center gap-2">
+            <EmojiPicker on:select={handleEmojiSelect} />
+            <span class="hidden truncate text-xs text-30 sm:inline">
+                支持 Markdown、预设表情、||隐藏内容||
+            </span>
+        </div>
         <button 
             on:click={handleSubmit}
             disabled={submitting || !nickname || !content}
-            class="btn-primary px-6 py-2 rounded-lg flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn-regular px-6 py-2 rounded-lg flex items-center gap-2 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed !bg-[var(--primary)] !text-white"
         >
             {#if submitting}
                 <Icon icon="eos-icons:loading" />
@@ -142,11 +168,8 @@ async function handleSubmit() {
 </div>
 
 <style>
-    .btn-primary {
-        background-color: var(--primary);
-        color: white;
-    }
-    .btn-primary:hover {
-        background-color: var(--primary-hover);
+    input::placeholder, textarea::placeholder {
+        @apply transition-colors;
     }
 </style>
+

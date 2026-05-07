@@ -6,7 +6,7 @@ import MainGridLayout from "../layouts/MainGridLayout.astro";
 ---
 
 <MainGridLayout title="留言板" description="欢迎留言">
-    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
+    <div class="flex w-full rounded-[var(--radius-large)] overflow-visible relative min-h-32">
         <div class="w-full">
             <MessageBoard client:load />
         </div>
