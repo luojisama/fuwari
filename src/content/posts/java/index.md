@@ -183,20 +183,33 @@ Java 通过 `Scanner` 类从键盘读取用户输入：
 import java.util.Scanner;
 
 Scanner input = new Scanner(System.in);
+// 在线运行时可以在输入框填写：111 张三 12.5
 
 // 读取整数
-int k = input.nextInt();
+System.out.println("请输入整数");
+if (input.hasNextInt()) {
+    int k = input.nextInt();
+    System.out.println("整数：" + k);
+} else {
+    System.out.println("没有读取到整数");
+}
 
 // 读取字符串
-String name = input.next();
+System.out.println("请输入姓名");
+if (input.hasNext()) {
+    String name = input.next();
+    System.out.println("姓名：" + name);
+} else {
+    System.out.println("没有读取到姓名");
+}
 
 // 读取浮点数（带输入校验）
 System.out.println("请输入金额");
 if (input.hasNextDouble()) {
     double j = input.nextDouble();
-    System.out.println(j);
+    System.out.println("金额：" + j);
 } else {
-    System.out.println("输入错误");
+    System.out.println("没有读取到金额");
 }
 ```
 
@@ -206,15 +219,15 @@ if (input.hasNextDouble()) {
 
 ```java
 // 单分支
-if (条件) {
-    // 成立时执行
+if (true) {
+    System.out.println("成立时执行");
 }
 
 // 双分支
-if (条件) {
-    // 成立
+if (true) {
+    System.out.println("成立");
 } else {
-    // 不成立
+    System.out.println("不成立");
 }
 
 // 多分支
@@ -337,6 +350,16 @@ public class Dog {
 ## 创建对象
 
 ```java
+class Dog {
+    String name;
+    String strain;
+    double weight;
+
+    public void show() {
+        System.out.println("我的狗的名字是：" + name + " 品种是：" + strain + " 体重是：" + weight + "KG");
+    }
+}
+
 // 类名 对象名 = new 类名();
 Dog dog = new Dog();
 
@@ -351,7 +374,7 @@ dog.show();
 
 ## 方法的定义与返回值
 
-```java
+```text
 public 返回值类型 方法名() {
     // 方法体
     return 表达式;
@@ -392,7 +415,7 @@ public class Student {
 
 ## 有参方法
 
-```java
+```text
 public 返回值类型 方法名(参数1类型 参数1名, 参数2类型 参数2名) {
     方法体;
 }
@@ -418,6 +441,7 @@ public class Cal {
 // 调用
 Cal cal = new Cal();
 int result = cal.sum(10, 20); // 传入实参
+System.out.println(result);
 ```
 
 ## 包
@@ -475,12 +499,20 @@ a[0] = a[0] + 10;
 数组遍历通过循环 + 下标实现，`数组名.length` 获取数组长度：
 
 ```java
+import java.util.Scanner;
+
+Scanner input = new Scanner(System.in);
 double[] arr = new double[5];
+double[] defaults = {12.5, 36.0, 18.8, 7.5, 20.0};
 double sum = 0.0;
 
 for (int i = 0; i < arr.length; i++) {
-    System.out.println("请输入金额");
-    arr[i] = input.nextDouble();
+    System.out.println("请输入第 " + (i + 1) + " 笔金额");
+    if (input.hasNextDouble()) {
+        arr[i] = input.nextDouble();
+    } else {
+        arr[i] = defaults[i];
+    }
     sum += arr[i];
 }
 
@@ -574,7 +606,7 @@ System.out.println(sb); // man
 
 方法名和类名一致，没有返回值（也不写 `void`）的方法。在 `new` 对象时自动调用，用于初始化对象。
 
-```java
+```text
 // 语法
 public 类名(参数) {
     // 初始化逻辑
@@ -946,6 +978,27 @@ bu.show();
 ## 向上转型（子类 → 父类）
 
 ```java
+class Pet {
+    public void eat() {
+        System.out.println("宠物吃东西");
+    }
+
+    public void run() {
+        System.out.println("宠物会跑");
+    }
+}
+
+class Dog extends Pet {
+    @Override
+    public void eat() {
+        System.out.println("狗吃东西");
+    }
+
+    public void work() {
+        System.out.println("狗能看大门");
+    }
+}
+
 // 父类引用 = 子类对象（自动转型）
 Pet p = new Dog();
 p.eat(); // 调用的是 Dog 重写后的 eat()
@@ -960,6 +1013,15 @@ p.run();
 父类引用转回子类类型，需要强制转换，转换失败会抛出 `ClassCastException`：
 
 ```java
+class Pet {
+}
+
+class Dog extends Pet {
+    public void work() {
+        System.out.println("狗能看大门");
+    }
+}
+
 Pet p = new Dog();
 
 // 强制转换，大转小
@@ -972,6 +1034,21 @@ d.work(); // 可以调用 Dog 的特有方法
 在强制转换前，用 `instanceof` 判断对象的实际类型，保证代码健壮性：
 
 ```java
+class Pet {
+}
+
+class Dog extends Pet {
+    public void work() {
+        System.out.println("狗能看大门");
+    }
+}
+
+class Cat extends Pet {
+    public void play() {
+        System.out.println("猫会玩耍");
+    }
+}
+
 Pet p = new Dog();
 
 if (p instanceof Dog) {
@@ -988,6 +1065,26 @@ if (p instanceof Dog) {
 **1. 父类引用指向子类对象**
 
 ```java
+class Person {
+    public void show() {
+        System.out.println("Person");
+    }
+}
+
+class Student extends Person {
+    @Override
+    public void show() {
+        System.out.println("Student");
+    }
+}
+
+class Teacher extends Person {
+    @Override
+    public void show() {
+        System.out.println("Teacher");
+    }
+}
+
 Person p = new Student();
 p.show(); // 执行 Student 的 show()
 
@@ -1000,6 +1097,26 @@ p.show(); // 执行 Teacher 的 show()
 形参声明为父类类型，传入子类对象，方法内部自动调用对应的重写方法：
 
 ```java
+class Pet {
+    public void eat() {
+        System.out.println("宠物吃东西");
+    }
+}
+
+class Dog extends Pet {
+    @Override
+    public void eat() {
+        System.out.println("狗吃东西");
+    }
+}
+
+class Cat extends Pet {
+    @Override
+    public void eat() {
+        System.out.println("猫吃东西");
+    }
+}
+
 public class Master {
     // 形参为父类，实参传子类对象
     public void food(Pet pet) {
@@ -1017,6 +1134,19 @@ ma.food(new Cat());
 方法声明返回父类类型，实际返回子类对象：
 
 ```java
+class Pet {
+    public void eat() {
+        System.out.println("宠物吃东西");
+    }
+}
+
+class Dog extends Pet {
+    @Override
+    public void eat() {
+        System.out.println("狗吃东西");
+    }
+}
+
 public class PetAgree {
     public Pet buy() {
         return new Dog(); // 返回子类对象

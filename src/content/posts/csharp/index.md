@@ -64,7 +64,7 @@ b = int.Parse(a);
 Console.WriteLine(b is int);
 ```
 输出如下：
-```csharp
+```text
 True
 ```
 ### 方法2
@@ -96,16 +96,23 @@ b = (byte)a;  //大转小强制转
   //声明一个int类型，名称为A1的变量
   char B1 = 'C';
   //声明一个char类型，名称为B1，值为C的变量
-  ```
+```
 ## 手动输入
 在C#中，手动输入值由提示词+获取输入信息来共同完成，例：
 ```csharp
 Console.WriteLine("请输入你的年龄");
 string Age = Console.ReadLine();
-Console.WriteLine(Age);
+if (string.IsNullOrWhiteSpace(Age))
+{
+    Console.WriteLine("未输入年龄");
+}
+else
+{
+    Console.WriteLine(Age);
+}
 ```
 输入输出如下：
-```csharp
+```text
 //输入17
 17
 //输入19
@@ -143,7 +150,7 @@ bool flag = str is string;
 Console.WriteLine(flag);
 ```
 输出如下：
-```csharp
+```text
 True
 ```
 ## 三元表达式
@@ -153,18 +160,18 @@ True
 `:`表示结果，返回结果的数据类型由用户决定。   
 例：
 ```csharp
-int A = 10,A = 5,C = 1;
+int A = 10, B = 5, C = 1;
 string result = A > C ? "A大于C" : "A小于C";
 Console.WriteLine(result);
 ```
 输出如下：
-```csharp
+```text
 A大于C
 ```
 # 选择结构
 ## if选择结构
 基本语法如下：
-```csharp
+```text
 //单分支
 if (条件) 
 {执行的代码}
@@ -188,8 +195,12 @@ else
 ```csharp
 Console.WriteLine("请输入成绩");
 string s = Console.ReadLine();
-int score = int.Parse(s);
-if (score >= 90)
+
+if (!int.TryParse(s, out int score))
+{
+    Console.WriteLine("输入错误");
+}
+else if (score >= 90)
 {
     Console.WriteLine("优秀");
 }
@@ -212,7 +223,7 @@ else
 ```
 ## switch选择结构
 基本语法：
-```csharp
+```text
 switch (表达式) {
 case 表达式1:
 	语句1;
@@ -231,11 +242,14 @@ case是明确且不会发生变化的值。
 
 `switch`与`if`可以互相嵌套使用：
 ```csharp
- Console.WriteLine("请输入1-31的数字");
+Console.WriteLine("请输入1-31的数字");
 string str = Console.ReadLine();
-int day = int.Parse(str);
 
-if (day <= 31 && day > 0)
+if (!int.TryParse(str, out int day) || day <= 0 || day > 31)
+{
+    Console.WriteLine("输入错误");
+}
+else
 {
     int week = (day - 1) / 7 +1 ;
     day = day % 7;
@@ -264,10 +278,6 @@ if (day <= 31 && day > 0)
             break;
     }
 }
-else
-{
-    Console.WriteLine("输入错误");
-}
 ```
 
 # 循环结构
@@ -277,7 +287,7 @@ C#中有三种循环结构：`while`，`do-while`，`for`
 `先判断后执行`
 根据条件可以判断执行的次数。
 基本语法：
-```csharp
+```text
 循环变量;
 while (条件)
 {
@@ -299,7 +309,7 @@ while (a<11)
 ## do{ } while()
 `先执行后判断`
 基本语法：
-```csharp
+```text
 循环变量;
 do 
 {
@@ -321,7 +331,7 @@ while (a <= 30);
 
 ## for 
 基本语法：
-```csharp
+```text
 for(初始化;条件;迭代语句)
 { 
 	代码块
@@ -353,16 +363,18 @@ for (int a = 1; a < 6; a++)
 ## 访问数组
 与python相同，通过下标（index）访问。
 ```csharp
-  Console.WriteLine(b[3]);
+int[] b = new int[5] { 5, 4, 3, 2, 1 };
+Console.WriteLine(b[3]);
 ```
 输出的值应该为：
-```csharp
+```text
 2
 ```
 
 ## 循环遍历
 在C#中，数组也可以使用循环来遍历。
 ```csharp
+int[] b = new int[5] { 5, 4, 3, 2, 1 };
 for (int i = 0; i <= b.Length - 1; i++)
 {
     Console.WriteLine(b[i]);
@@ -377,17 +389,20 @@ string str = "    rgdzsfJWBHKrfg    ";
 ```
 ## 转大小写
 ```csharp
+string str = "    rgdzsfJWBHKrfg    ";
 Console.WriteLine(str.ToUpper());
 Console.WriteLine(str.ToLower());
 ```
 ## 检查开头结尾
 返回布尔值。
 ```csharp
+string str = "    rgdzsfJWBHKrfg    ";
 Console.WriteLine(str.StartsWith("r"));
 Console.WriteLine(str.EndsWith("g"));
 ```
 ## 去除空字符串
 ```csharp
+string str = "    rgdzsfJWBHKrfg    ";
 Console.WriteLine(str.Trim());
 Console.WriteLine(str.TrimEnd());
 Console.WriteLine(str.TrimStart());
@@ -396,15 +411,18 @@ Console.WriteLine(str.TrimStart());
 返回第一个字符下标。     
 未找到时返回`-1`。   
 ```csharp
+string str = "    rgdzsfJWBHKrfg    ";
 Console.WriteLine(str.IndexOf("g"));
 Console.WriteLine(str.LastIndexOf("r"));
 ```
 ## 检查存在
 ```csharp
+string str = "    rgdzsfJWBHKrfg    ";
 Console.WriteLine(str.Contains("f"));
 ```
 ## 字符串拼接
 ```csharp
+string str = "    rgdzsfJWBHKrfg    ";
 Console.WriteLine(string.Concat(str,"哦马吉里曼波"));
 ```
 使用时需要使用`string`引用
@@ -417,54 +435,48 @@ Console.WriteLine(str2.Equals("RGdzsfJWB@HKrFG",StringComparison.OrdinalIgnoreCa
 类是对一组对象的抽象描述，它定义了对象的属性（字段）和行为（方法）。  
 定义类：
 ```csharp
-//定义属性语法
-//修饰符 数据类型 属性名 = 默认值;
-public string name;//名字
-public string strian;//种类
-public double weight;//体重
+public class Dog
+{
+    public string name = "";
+    public string strian = "";
+    public double weight;
 
- //1：无参无返回值
- //public void 方法名()
- //{
- //    方法体;
- //}
+    public void GetShow()
+    {
+        Console.WriteLine($"我的狗叫{name}，是一只{strian}，体重是{weight}KG");
+    }
 
- public void getShow()
- {
-     Console.WriteLine($"我的狗叫{name}，是一只{strian}，体重是{weight}KG");
- }
- 
- //2：有参无返回值
- //public void 方法名(参数列表)
- //{ 
- //    方法体;
- //}
-  public void getValues (int a ,int b)//形式参数，无实际意义，不可缺少
- {
-     Console.WriteLine(a+b);
- }
- 
- //3：无参有返回值
- //public 返回值类型 方法名()
- //{
- //    方法体;
- //    return 返回值;
- //}
- 
- //4：有参有返回值
-
+    public void GetValues(int a, int b)
+    {
+        Console.WriteLine(a + b);
+    }
+}
 ```
 调用类
 ```csharp
- dog NewDog = new dog();
- //调用属性 对象名.属性名 = 值;
- NewDog.name = "小黑";
- NewDog.strian = "拉布拉多";
- NewDog.weight = 15.5;
- //调用方法 对象名.方法名();
- NewDog.getShow();
- NewDog.getValues(10, 20);//实际参数，不可缺少
- 
+public class Dog
+{
+    public string name = "";
+    public string strian = "";
+    public double weight;
+
+    public void GetShow()
+    {
+        Console.WriteLine($"我的狗叫{name}，是一只{strian}，体重是{weight}KG");
+    }
+
+    public void GetValues(int a, int b)
+    {
+        Console.WriteLine(a + b);
+    }
+}
+
+Dog newDog = new Dog();
+newDog.name = "小黑";
+newDog.strian = "拉布拉多";
+newDog.weight = 15.5;
+newDog.GetShow();
+newDog.GetValues(10, 20);
 ```
 # 异常处理
 在C#中，异常不等于错误，异常代码可以正常运行，错误是代码无法直接运行。   
@@ -506,7 +518,7 @@ catch (Exception ex)
 打开数据库连接
 ##### Close()
 关闭数据库连接
-```csharp
+```text
 // 示例：创建并打开SQL Server连接
 using System.Data.SqlClient;
 
@@ -542,7 +554,7 @@ using (SqlConnection conn = new SqlConnection(connectionString))
 执行返回单个值（如COUNT、SUM）的SQL命令，返回结果集的第一行第一列的值。
 ##### ExecuteReader()
 执行返回多行数据（如SELECT）的SQL命令，返回`SqlDataReader`对象。
-```csharp
+```text
 // 示例：执行INSERT命令
 using System.Data.SqlClient;
 
@@ -567,7 +579,7 @@ using (SqlConnection conn = new SqlConnection(connectionString))
 根据列的索引获取字符串类型的值。
 ##### GetInt32(int ordinal)
 根据列的索引获取32位整数类型的值。
-```csharp
+```text
 // 示例：读取数据
 using System.Data.SqlClient;
 
@@ -587,20 +599,7 @@ using (SqlConnection conn = new SqlConnection(connectionString))
         }
     }
 }
-using System.Data.SqlClient;
-
-string connectionString = "Server=localhost;Database=TestDB;Uid=sa;Pwd=123456;";
-using (SqlConnection conn = new SqlConnection(connectionString))
-{
-    try
-    {
-        conn.Open();
-        Console.WriteLine("数据库连接成功");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"连接失败：{ex.Message}
-        ```
+```
 ##### State
 `Open()`打开   
 `Closed()`关闭   
@@ -652,7 +651,7 @@ using (SqlConnection conn = new SqlConnection(connectionString))
 ## ado.net访问数据库的步骤
 ### 1.连接到数据库
 创建数据库连接字符串
-```csharp
+```text
 SqlConnection conn = new SqlConnection();
 conn.ConnectionString = "Data Source=.;database=cs;Integrated Security=True;";
 ```
@@ -661,12 +660,12 @@ conn.ConnectionString = "Data Source=.;database=cs;Integrated Security=True;";
 `database`指数据库    
 `Integrated Security=True`指使用Windows验证而不是SQL Server 用户名密码
 ### 2.打开连接
-```csharp
+```text
 conn.Open()
 ```
 ### 3.执行创建对象
 ### 4.执行命令
 ### 5.关闭连接
-```csharp
+```text
 conn.Close()
 ```

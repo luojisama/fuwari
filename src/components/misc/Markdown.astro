@@ -8,351 +8,664 @@ interface Props {
 const className = Astro.props.class;
 ---
 <div data-pagefind-body class={`prose dark:prose-invert prose-base !max-w-none custom-md ${className}`}>
-    <!--<div class="prose dark:prose-invert max-w-none custom-md">-->
-    <!--<div class="max-w-none custom-md">-->
-    <slot/>
+	<slot />
 </div>
 
 <script>
-  const SUPPORTED_LANGS = ['js', 'javascript', 'ts', 'typescript', 'py', 'python', 'go', 'cpp', 'c', 'java', 'rs', 'rust', 'sh', 'bash'];
+interface ExecuteResponse {
+	ok: boolean;
+	output?: string;
+	stdout?: string;
+	stderr?: string;
+	error?: string;
+}
 
-  function enhanceCodeBlocks() {
-     // 暂停 observer 以免修改 DOM 触发循环
-     if (window._codeBlockObserver) {
-         window._codeBlockObserver.disconnect();
-     }
-     
-     let codeBlocks = Array.from(document.querySelectorAll("pre"));
-     console.log(`[CodeRun] Found ${codeBlocks.length} code blocks`);
+type StdinMode = "line" | "token";
 
-     for (let codeBlock of codeBlocks) {
-       let wrapper: HTMLElement;
-       
-       if (codeBlock.parentElement?.nodeName === "DIV" && codeBlock.parentElement?.classList.contains("code-block")) {
-         wrapper = codeBlock.parentElement;
-       } else {
-         wrapper = document.createElement("div");
-         wrapper.className = "relative code-block";
-         codeBlock.setAttribute("tabindex", "0");
-         if (codeBlock.parentNode) {
-           codeBlock.parentNode.insertBefore(wrapper, codeBlock);
-         }
-         wrapper.appendChild(codeBlock);
-       }
+interface StdinProfile {
+	count: number;
+	mode: StdinMode;
+	prompts: string[];
+}
 
-       // 确保 wrapper 是 relative
-       if (getComputedStyle(wrapper).position !== 'relative') {
-           wrapper.style.position = 'relative';
-       }
+interface StdinSession {
+	values: string[];
+}
 
-       if (!wrapper.querySelector('.copy-btn')) {
-         addCopyButton(wrapper, codeBlock);
-       }
+const COPY_RESET_MS = 1000;
+const CLIENT_TIMEOUT_MS = 15000;
+const copyResetTimers = new WeakMap<HTMLButtonElement, ReturnType<typeof setTimeout>>();
+const stdinSessions = new WeakMap<HTMLElement, StdinSession>();
+const SUBMIT_INPUT_ICON =
+	'<svg viewBox="0 -960 960 960" width="18" height="18" aria-hidden="true" fill="currentColor"><path d="M120-160v-640l760 320-760 320Zm80-120 474-200-474-200v140l240 60-240 60v140Z"></path></svg>';
 
-       const lang = getLanguage(codeBlock);
-       console.log(`[CodeRun] Block lang: ${lang}, classes: ${codeBlock.className}`);
-       
-       if (lang && SUPPORTED_LANGS.includes(lang.toLowerCase())) {
-          if (!wrapper.querySelector('.run-btn')) {
-             console.log(`[CodeRun] Adding run button for ${lang}`);
-             addRunButton(wrapper, codeBlock, lang);
-          }
-       }
-     }
-     
-     // 恢复监听
-     if (window._codeBlockObserver) {
-         window._codeBlockObserver.observe(document.body, { childList: true, subtree: true });
-     }
-   }
+function getActionButton(target: EventTarget | null): HTMLButtonElement | null {
+	if (!(target instanceof Element)) return null;
+	const button = target.closest("button[data-run-action]");
+	return button instanceof HTMLButtonElement ? button : null;
+}
 
-  // 初始化 Observer (单例模式)
-  if (!window._codeBlockObserver) {
-      const observer = new MutationObserver(enhanceCodeBlocks);
-      observer.observe(document.body, { childList: true, subtree: true });
-      window._codeBlockObserver = observer;
+function getRunnerBlock(button: HTMLButtonElement): HTMLElement | null {
+	const block = button.closest("[data-code-runner]");
+	return block instanceof HTMLElement ? block : null;
+}
 
-      // 监听 Swup 导航事件
-      document.addEventListener('swup:contentReplaced', () => {
-          enhanceCodeBlocks();
-      });
-  }
+function getCodeElement(block: HTMLElement): HTMLElement | null {
+	const code = block.querySelector("pre code");
+	if (code instanceof HTMLElement) return code;
+	const pre = block.querySelector("pre");
+	return pre instanceof HTMLElement ? pre : null;
+}
 
-  // 立即执行一次
-  enhanceCodeBlocks();
+function getEditor(block: HTMLElement): HTMLTextAreaElement | null {
+	const editor = block.querySelector("[data-run-editor]");
+	return editor instanceof HTMLTextAreaElement ? editor : null;
+}
 
+function getStdin(block: HTMLElement): HTMLTextAreaElement | null {
+	const stdin = block.querySelector("[data-run-stdin]");
+	return stdin instanceof HTMLTextAreaElement ? stdin : null;
+}
 
-  function getLanguage(node: HTMLElement) {
-       // 优先尝试 dataset
-       if (node.dataset.language) {
-           return node.dataset.language;
-       }
-       // 检查 pre 的 class
-       const cls = node.className || "";
-       let match = cls.match(/language-([\w-]+)/);
-       if (match) return match[1];
-       
-       // 检查内部 code 的 class
-       const code = node.querySelector("code");
-       if (code) {
-           // 检查 code 的 dataset
-           if (code.dataset.language) {
-               return code.dataset.language;
-           }
-           const codeCls = code.className || "";
-           match = codeCls.match(/language-([\w-]+)/);
-           if (match) return match[1];
-       }
-       return null;
-   }
+function getStdinPanel(block: HTMLElement): HTMLElement | null {
+	const panel = block.querySelector("[data-run-stdin-panel]");
+	if (panel instanceof HTMLElement) return panel;
+	return getStdin(block);
+}
 
-  function addCopyButton(wrapper: HTMLElement, codeBlock: HTMLElement) {
-      let copyButton = document.createElement("button");
-      copyButton.className = "copy-btn btn-regular-dark absolute active:scale-90 h-8 w-8 top-2 right-2 opacity-75 text-sm p-1.5 rounded-lg transition-all ease-in-out z-10";
-      
-      let copyIcon = `<svg class="copy-btn-icon copy-icon" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"><path d="M368.37-237.37q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-474.26q0-34.48 24.26-58.74 24.26-24.26 58.74-24.26h378.26q34.48 0 58.74 24.26 24.26 24.26 24.26 58.74v474.26q0 34.48-24.26 58.74-24.26 24.26-58.74 24.26H368.37Zm0-83h378.26v-474.26H368.37v474.26Zm-155 238q-34.48 0-58.74-24.26-24.26-24.26-24.26-58.74v-515.76q0-17.45 11.96-29.48 11.97-12.02 29.33-12.02t29.54 12.02q12.17 12.03 12.17 29.48v515.76h419.76q17.45 0 29.48 11.96 12.02 11.97 12.02 29.33t-12.02 29.54q-12.03 12.17-29.48 12.17H213.37Zm155-238v-474.26 474.26Z"/></svg>`
-      let successIcon = `<svg class="copy-btn-icon success-icon" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"><path d="m389-377.13 294.7-294.7q12.58-12.67 29.52-12.67 16.93 0 29.61 12.67 12.67 12.68 12.67 29.53 0 16.86-12.28 29.14L419.07-288.41q-12.59 12.67-29.52 12.67-16.94 0-29.62-12.67L217.41-430.93q-12.67-12.68-12.79-29.45-.12-16.77 12.55-29.45 12.68-12.67 29.62-12.67 16.93 0 29.28 12.67L389-377.13Z"/></svg>`
-      copyButton.innerHTML = `<div>${copyIcon} ${successIcon}</div>`
-      
-      wrapper.appendChild(copyButton);
+function getRunButton(block: HTMLElement): HTMLButtonElement | null {
+	const button = block.querySelector('button[data-run-action="run"]');
+	return button instanceof HTMLButtonElement ? button : null;
+}
 
-      let timeout: ReturnType<typeof setTimeout>;
-      copyButton.addEventListener("click", async () => {
-        if (timeout) clearTimeout(timeout);
-        let text = codeBlock?.querySelector("code")?.innerText;
-        if (text === undefined) return;
-        await navigator.clipboard.writeText(text);
-        copyButton.classList.add("success");
-        timeout = setTimeout(() => {
-          copyButton.classList.remove("success");
-        }, 1000);
-      });
-  }
+function getRunButtons(block: HTMLElement): HTMLButtonElement[] {
+	return [
+		...block.querySelectorAll(
+			'button[data-run-action="run"], button[data-run-action="submit-input"]',
+		),
+	].filter(
+		(button): button is HTMLButtonElement => button instanceof HTMLButtonElement,
+	);
+}
 
-  function addRunButton(wrapper: HTMLElement, codeBlock: HTMLElement, lang: string) {
-       let runButton = document.createElement("button");
-       // 使用 Tailwind 原子类替代可能的自定义类，确保样式可见
-       runButton.className = "run-btn absolute active:scale-90 h-8 w-8 top-2 opacity-75 text-sm p-1.5 rounded-lg transition-all ease-in-out z-20 bg-[#374151] text-white hover:bg-[#4b5563] hover:opacity-100";
-       runButton.style.right = "3.5rem"; // 调整位置，避开可能的复制按钮
-       runButton.title = "Run Code";
-       
-       let playIcon = `<svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M320-200v-560l440 280-440 280Z"/></svg>`;
-       let loadingIcon = `<svg class="animate-spin" xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 0 24 24" width="20px" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 4V2.21c0-.45-.54-.67-.85-.35l-2.8 2.79c-.2.2-.2.51 0 .71l2.79 2.79c.32.31.86.09.86-.36V6c3.31 0 6 2.69 6 6 0 .79-.19 1.53-.51 2.2l1.65 1.65C22.68 14.65 23 13.38 23 12c0-6.07-4.93-11-11-11zm-5.14 1.78L5.2 4.13C2.15 6.45 0.5 9.97 1 13.82c.49 3.77 3.33 6.84 7.07 7.74 3.74.9 7.48-.3 10.09-2.91l-1.66-1.66c-2.02 1.88-4.9 2.72-7.73 1.95-2.83-.77-4.96-3.09-5.33-6-.37-2.93.89-5.63 3.42-7.38z"/></svg>`;
-       
-       runButton.innerHTML = `<div>${playIcon}</div>`;
-       wrapper.appendChild(runButton);
+function getOutput(block: HTMLElement): HTMLElement | null {
+	const output = block.querySelector("[data-run-output]");
+	return output instanceof HTMLElement ? output : null;
+}
 
-       // Edit Button
-       let editButton = document.createElement("button");
-       editButton.className = "edit-btn absolute active:scale-90 h-8 w-8 top-2 opacity-75 text-sm p-1.5 rounded-lg transition-all ease-in-out z-20 bg-[#374151] text-white hover:bg-[#4b5563] hover:opacity-100";
-       editButton.style.right = "6rem"; // 调整位置
-       editButton.title = "Edit Code";
-       editButton.innerHTML = `<div><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 17l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg></div>`;
-       wrapper.appendChild(editButton);
+function getCode(block: HTMLElement): string {
+	const editor = getEditor(block);
+	if (editor && !editor.hidden) return editor.value;
+	return getCodeElement(block)?.innerText ?? "";
+}
 
-       // Input (Stdin) Button
-       let inputButton = document.createElement("button");
-       inputButton.className = "input-btn absolute active:scale-90 h-8 w-8 top-2 opacity-75 text-sm p-1.5 rounded-lg transition-all ease-in-out z-20 bg-[#374151] text-white hover:bg-[#4b5563] hover:opacity-100";
-       inputButton.style.right = "8.5rem"; // 调整位置
-       inputButton.title = "Input (Stdin)";
-       // Keyboard icon
-       inputButton.innerHTML = `<div><svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M160-200q-33 0-56.5-23.5T80-280v-400q0-33 23.5-56.5T160-760h640q33 0 56.5 23.5T880-680v400q0 33-23.5 56.5T800-200H160Zm0-80h640v-400H160v400Zm160-280h80v-80h-80v80Zm0 160h80v-80h-80v80Zm-160-160h80v-80h-80v80Zm0 160h80v-80h-80v80Zm320-160h80v-80h-80v80Zm160 160h80v-80h-80v80Zm-160 0h80v-80h-80v80Zm160-160h80v-80h-80v80ZM160-680v400-400Z"/></svg></div>`;
-       wrapper.appendChild(inputButton);
+function getStdinSession(block: HTMLElement): StdinSession {
+	const session = stdinSessions.get(block);
+	if (session) return session;
 
-       // Create output area
-       let outputArea = document.createElement("div");
-       outputArea.className = "run-output hidden mt-4 p-4 rounded-lg bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm overflow-x-auto whitespace-pre-wrap border border-gray-700 shadow-inner";
-       outputArea.style.display = 'none'; 
-       wrapper.appendChild(outputArea);
+	const nextSession = { values: [] };
+	stdinSessions.set(block, nextSession);
+	return nextSession;
+}
 
-       // Create input area (stdin)
-       let inputArea = document.createElement("textarea");
-       inputArea.className = "stdin-area w-full p-2 mt-2 bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm border border-gray-700 rounded-lg placeholder-gray-500 hidden";
-       inputArea.placeholder = "Input (Stdin)";
-       inputArea.rows = 2;
-       inputArea.spellcheck = false;
-       wrapper.insertBefore(inputArea, outputArea); // Input before Output
+function readStringLiteral(text: string): string {
+	try {
+		return JSON.parse(`"${text}"`) as string;
+	} catch (_error) {
+		return text.replace(/\\n/g, "\n").replace(/\\"/g, '"');
+	}
+}
 
-       let textarea: HTMLTextAreaElement | null = null;
-       
-       // Toggle Input Area
-       inputButton.addEventListener("click", () => {
-           if (inputArea.classList.contains("hidden")) {
-               inputArea.classList.remove("hidden");
-               inputButton.classList.add("!opacity-100", "text-[var(--primary)]");
-           } else {
-               inputArea.classList.add("hidden");
-               inputButton.classList.remove("!opacity-100", "text-[var(--primary)]");
-           }
-       });
+function getLastQuotedText(line: string): string {
+	const matches = [...line.matchAll(/"((?:\\.|[^"\\])*)"/g)];
+	const last = matches.at(-1);
+	return last ? readStringLiteral(last[1]) : "";
+}
 
-       // Auto-detect input() in code and show input area
-       if (codeBlock.innerText.includes("input(")) {
-           inputArea.classList.remove("hidden");
-           inputButton.classList.add("!opacity-100", "text-[var(--primary)]");
-       }
+function getJavaInputPrompts(code: string): string[] {
+	const prompts: string[] = [];
+	let pendingPrompt = "";
 
-       editButton.addEventListener("click", () => {
-           if (!textarea) {
-               const currentCode = codeBlock.innerText;
-               const rect = codeBlock.getBoundingClientRect();
-               
-               textarea = document.createElement("textarea");
-               textarea.className = "w-full p-4 bg-[#1e1e1e] text-[#d4d4d4] font-mono text-sm resize-y outline-none border border-gray-700 rounded-lg mb-2";
-               textarea.value = currentCode;
-               textarea.style.minHeight = Math.max(100, rect.height) + "px";
-               textarea.spellcheck = false;
-               
-               codeBlock.style.display = "none";
-               wrapper.insertBefore(textarea, outputArea);
-               
-               editButton.classList.add("!opacity-100", "text-[var(--primary)]");
-           } else {
-               if (textarea.style.display === "none") {
-                   textarea.style.display = "block";
-                   codeBlock.style.display = "none";
-                   editButton.classList.add("!opacity-100", "text-[var(--primary)]");
-               } else {
-                   textarea.style.display = "none";
-                   codeBlock.style.display = "block";
-                   editButton.classList.remove("!opacity-100", "text-[var(--primary)]");
-               }
-           }
-       });
+	for (const line of code.split(/\r?\n/)) {
+		if (/System\.out\.print(?:ln)?\s*\(/.test(line)) {
+			const text = getLastQuotedText(line);
+			if (text) pendingPrompt = text;
+		}
+		if (/\.\s*next(?:Int|Long|Double|Float|Boolean|Byte|Short|Line)?\s*\(/.test(line)) {
+			prompts.push(pendingPrompt);
+			pendingPrompt = "";
+		}
+	}
 
-       runButton.addEventListener("click", async () => {
-           const code = (textarea && textarea.style.display !== "none") ? textarea.value : codeBlock.innerText;
-           const stdin = inputArea.value;
+	return prompts;
+}
 
-           outputArea.style.display = 'block';
-           outputArea.innerHTML = '<span class="text-gray-500">Running...</span>';
-           runButton.innerHTML = `<div>${loadingIcon}</div>`;
-           runButton.disabled = true;
+function getCSharpInputPrompts(code: string): string[] {
+	const prompts: string[] = [];
+	let pendingPrompt = "";
 
-           try {
-               let result = "";
-               if (['js', 'javascript', 'ts', 'typescript'].includes(lang.toLowerCase())) {
-                    result = await runJsInWorker(code, lang);
-               } else {
-                    result = await runInBackend(code, lang, stdin);
-               }
-               outputArea.innerText = result || "No output";
-           } catch (err: any) {
-               outputArea.innerHTML = `<span class="text-red-400">Error: ${err.message || err}</span>`;
-           } finally {
-               runButton.innerHTML = `<div>${playIcon}</div>`;
-               runButton.disabled = false;
-           }
-       });
-   }
+	for (const line of code.split(/\r?\n/)) {
+		if (/Console\.Write(?:Line)?\s*\(/.test(line)) {
+			const text = getLastQuotedText(line);
+			if (text) pendingPrompt = text;
+		}
+		if (/\bConsole\.Read(?:Line|Key)\s*\(/.test(line)) {
+			prompts.push(pendingPrompt);
+			pendingPrompt = "";
+		}
+	}
 
-  async function runJsInWorker(code: string, lang: string): Promise<string> {
-      return new Promise((resolve, reject) => {
-          // 如果是 TS，这里其实需要编译，简单起见我们假设它是 JS 或者浏览器能跑的。
-          // 真正的 TS 支持需要引入 typescript 编译器到前端，体积太大。
-          // 我们可以尝试让后端跑 TS，或者在这里提示仅支持标准 JS。
-          // 为了演示效果，如果 lang 是 ts，我们发给后端。
-          if (lang.includes('ts') || lang.includes('typescript')) {
-              return runInBackend(code, lang).then(resolve).catch(reject);
-          }
+	return prompts;
+}
 
-          const workerCode = `
-            self.onmessage = async (e) => {
-                const logs = [];
-                const originalLog = console.log;
-                const originalError = console.error;
-                const originalWarn = console.warn;
-                
-                const logger = (...args) => {
-                    logs.push(args.map(a => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))).join(' '));
-                };
-                
-                console.log = logger;
-                console.error = logger;
-                console.warn = logger;
+function getPythonInputPrompts(code: string): string[] {
+	return [...code.matchAll(/\binput\s*\(\s*(?:"((?:\\.|[^"\\])*)"|'((?:\\.|[^'\\])*)')?/g)].map(
+		(match) => readStringLiteral(match[1] ?? match[2] ?? ""),
+	);
+}
 
-                try {
-                    // Capture last expression result
-                    let result = eval(e.data);
-                    if (result !== undefined) {
-                        logs.push(String(result));
-                    }
-                    self.postMessage({ type: 'success', output: logs.join('\\n') });
-                } catch (err) {
-                    self.postMessage({ type: 'error', error: err.toString(), output: logs.join('\\n') });
-                }
-            };
-          `;
+function detectStdinProfile(block: HTMLElement): StdinProfile {
+	const language = block.dataset.runLanguage?.toLowerCase() ?? "";
+	const code = getCode(block);
 
-          const blob = new Blob([workerCode], { type: 'application/javascript' });
-          const workerUrl = URL.createObjectURL(blob);
-          const worker = new Worker(workerUrl);
-          
-          // 设置超时
-          const timeoutId = setTimeout(() => {
-              worker.terminate();
-              URL.revokeObjectURL(workerUrl);
-              reject(new Error("Execution timed out (5s limit)"));
-          }, 5000);
+	if (language === "java") {
+		const prompts = getJavaInputPrompts(code);
+		return {
+			count: prompts.length,
+			mode: /\.\s*nextLine\s*\(/.test(code) ? "line" : "token",
+			prompts,
+		};
+	}
 
-          worker.onmessage = (e) => {
-              clearTimeout(timeoutId);
-              worker.terminate();
-              URL.revokeObjectURL(workerUrl);
-              if (e.data.type === 'error') {
-                  // 如果有部分输出，也显示
-                  const out = e.data.output ? e.data.output + '\n' : '';
-                  reject(new Error(out + e.data.error));
-              } else {
-                  resolve(e.data.output);
-              }
-          };
-          
-          worker.onerror = (e) => {
-              clearTimeout(timeoutId);
-              worker.terminate();
-              URL.revokeObjectURL(workerUrl);
-              reject(new Error("Worker error: " + e.message));
-          };
+	if (language === "python" || language === "py") {
+		const prompts = getPythonInputPrompts(code);
+		return { count: prompts.length, mode: "line", prompts };
+	}
 
-          worker.postMessage(code);
-      });
-  }
+	if (language === "csharp" || language === "cs") {
+		const prompts = getCSharpInputPrompts(code);
+		return { count: prompts.length, mode: "line", prompts };
+	}
 
-  async function runInBackend(code: string, lang: string, stdin: string = ""): Promise<string> {
-      try {
-          // Add trailing slash to match 'trailingSlash: always' config
-          const response = await fetch('/api/execute/', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ code, language: lang, stdin })
-          });
-          
-          const text = await response.text();
-          let data;
-          try {
-              data = JSON.parse(text);
-          } catch (e) {
-              console.error("Failed to parse API response. Raw text:", text);
-              // Check if it's a 404 or similar HTML page
-              if (text.includes("<!DOCTYPE html>") || text.includes("<html")) {
-                  throw new Error(`Endpoint not found or server error (${response.status}). Please ensure the backend API is running.`);
-              }
-              throw new Error(`Server returned invalid JSON: ${response.status} ${response.statusText}`);
-          }
-          
-          if (!response.ok) {
-              throw new Error(data.error || response.statusText);
-          }
-          
-          // Piston format
-          if (data.run) {
-              return data.run.output;
-          }
-          return JSON.stringify(data);
-      } catch (err: any) {
-          console.error("Execution error:", err);
-          throw err;
-      }
-  }
+	return { count: 0, mode: "line", prompts: [] };
+}
+
+function splitSubmittedValues(values: string[], mode: StdinMode): string[] {
+	if (mode === "token") {
+		return values.join("\n").trim().split(/\s+/).filter(Boolean);
+	}
+
+	return values.flatMap((value) => value.replace(/\r\n?/g, "\n").split("\n"));
+}
+
+function getSubmittedCount(values: string[], mode: StdinMode): number {
+	return splitSubmittedValues(values, mode).length;
+}
+
+function getExpectedStdinCount(profile: StdinProfile): number {
+	return profile.count > 0 ? profile.count : 1;
+}
+
+function renderTerminalPreview(profile: StdinProfile, values: string[]): string {
+	const entries = splitSubmittedValues(values, profile.mode);
+	const expected = getExpectedStdinCount(profile);
+	const lines: string[] = [];
+
+	for (let index = 0; index < entries.length; index++) {
+		const prompt = profile.prompts[index];
+		if (prompt) lines.push(prompt);
+		lines.push(`> ${entries[index]}`);
+	}
+
+	if (entries.length < expected) {
+		const nextPrompt = profile.prompts[entries.length];
+		lines.push(nextPrompt || `Input ${entries.length + 1}/${expected}`);
+	}
+
+	return lines.join("\n");
+}
+
+function getStdinValue(block: HTMLElement): string {
+	const session = stdinSessions.get(block);
+	const stdin = getStdin(block)?.value ?? "";
+	const values = session?.values.length ? [...session.values, stdin] : [stdin];
+	return values.filter((value) => value.length > 0).join("\n");
+}
+
+function createStdinSubmitButton(): HTMLButtonElement {
+	const button = document.createElement("button");
+	button.type = "button";
+	button.className = "code-tool-btn code-tool-run code-stdin-submit";
+	button.title = "Submit input";
+	button.setAttribute("aria-label", "Submit input");
+	button.dataset.runAction = "submit-input";
+	button.innerHTML = SUBMIT_INPUT_ICON;
+	return button;
+}
+
+function ensureStdinSubmitButton(block: HTMLElement): HTMLElement | null {
+	const stdin = getStdin(block);
+	if (!stdin) return null;
+	stdin.placeholder = "Current input, Enter to submit";
+
+	let panel = block.querySelector("[data-run-stdin-panel]");
+	if (!(panel instanceof HTMLElement)) {
+		panel = document.createElement("div");
+		panel.className = "code-run-stdin-panel";
+		panel.dataset.runStdinPanel = "";
+		panel.hidden = stdin.hidden;
+		stdin.hidden = false;
+		stdin.replaceWith(panel);
+		panel.append(stdin);
+	}
+
+	if (!panel.querySelector(".code-stdin-submit")) {
+		panel.append(createStdinSubmitButton());
+	}
+
+	return panel;
+}
+
+async function copyText(text: string): Promise<boolean> {
+	if (navigator.clipboard && window.isSecureContext) {
+		try {
+			await navigator.clipboard.writeText(text);
+			return true;
+		} catch (_err) {
+			// Fall back for browsers that expose Clipboard API but still reject writes.
+		}
+	}
+
+	const textarea = document.createElement("textarea");
+	textarea.value = text;
+	textarea.setAttribute("readonly", "");
+	textarea.style.position = "fixed";
+	textarea.style.left = "-9999px";
+	textarea.style.top = "0";
+	document.body.appendChild(textarea);
+	textarea.focus();
+	textarea.select();
+
+	try {
+		return document.execCommand("copy");
+	} finally {
+		textarea.remove();
+	}
+}
+
+function setCopyState(button: HTMLButtonElement, copied: boolean) {
+	button.classList.toggle("is-success", copied);
+	button.classList.toggle("is-error", !copied);
+
+	const resetTimer = copyResetTimers.get(button);
+	if (resetTimer) clearTimeout(resetTimer);
+
+	copyResetTimers.set(
+		button,
+		setTimeout(() => {
+			button.classList.remove("is-success", "is-error");
+		}, COPY_RESET_MS),
+	);
+}
+
+function toggleEditor(block: HTMLElement, button: HTMLButtonElement) {
+	const editor = getEditor(block);
+	const pre = block.querySelector("pre");
+	if (!editor || !(pre instanceof HTMLElement)) return;
+
+	if (editor.hidden) {
+		editor.value = getCode(block);
+		editor.style.minHeight = `${Math.max(120, pre.getBoundingClientRect().height)}px`;
+		editor.hidden = false;
+		pre.hidden = true;
+		button.classList.add("is-active");
+	} else {
+		editor.hidden = true;
+		pre.hidden = false;
+		button.classList.remove("is-active");
+	}
+}
+
+function toggleStdin(block: HTMLElement, button: HTMLButtonElement) {
+	const panel = ensureStdinSubmitButton(block) ?? getStdinPanel(block);
+	if (!panel) return;
+	panel.hidden = !panel.hidden;
+	button.classList.toggle("is-active", !panel.hidden);
+
+	if (!panel.hidden) {
+		const output = getOutput(block);
+		if (output?.hidden) {
+			setOutput(
+				output,
+				renderTerminalPreview(detectStdinProfile(block), getStdinSession(block).values),
+				"idle",
+			);
+		}
+	}
+}
+
+function setOutput(
+	output: HTMLElement,
+	text: string,
+	state: "idle" | "running" | "error",
+) {
+	output.hidden = false;
+	output.textContent = text;
+	output.dataset.state = state;
+}
+
+async function runCode(
+	block: HTMLElement,
+	button: HTMLButtonElement,
+	stdinOverride?: string,
+) {
+	const output = getOutput(block);
+	const runButtons = getRunButtons(block);
+	if (!output || button.disabled || runButtons.some((runButton) => runButton.disabled)) {
+		return;
+	}
+
+	const language = block.dataset.runLanguage;
+	const code = getCode(block);
+	const stdin = stdinOverride ?? getStdinValue(block);
+	if (!language || !code.trim()) {
+		setOutput(output, "No code to run.", "error");
+		return;
+	}
+
+	const controller = new AbortController();
+	const timeout = setTimeout(() => controller.abort(), CLIENT_TIMEOUT_MS);
+
+	for (const runButton of runButtons) {
+		runButton.disabled = true;
+		runButton.classList.add("is-running");
+	}
+	setOutput(output, "Running...", "running");
+
+	try {
+		const response = await fetch("/api/execute/", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ code, language, stdin }),
+			signal: controller.signal,
+		});
+		const data = (await response.json()) as ExecuteResponse;
+
+		if (!response.ok || !data.ok) {
+			throw new Error(data.error || data.output || response.statusText);
+		}
+
+		setOutput(output, data.output?.trimEnd() || "No output", "idle");
+	} catch (error) {
+		const message =
+			error instanceof DOMException && error.name === "AbortError"
+				? "Execution timed out."
+				: error instanceof Error
+					? error.message
+					: String(error);
+		setOutput(output, `Error: ${message}`, "error");
+	} finally {
+		clearTimeout(timeout);
+		for (const runButton of runButtons) {
+			runButton.disabled = false;
+			runButton.classList.remove("is-running");
+		}
+	}
+}
+
+async function submitStdin(block: HTMLElement, button: HTMLButtonElement) {
+	const stdin = getStdin(block);
+	const output = getOutput(block);
+	if (!stdin || !output) return;
+
+	const profile = detectStdinProfile(block);
+	const session = getStdinSession(block);
+	const value = stdin.value;
+	if (profile.mode === "token" && !value.trim()) {
+		setOutput(output, renderTerminalPreview(profile, session.values), "idle");
+		return;
+	}
+
+	session.values.push(value);
+	stdin.value = "";
+
+	const expected = getExpectedStdinCount(profile);
+	const submitted = getSubmittedCount(session.values, profile.mode);
+	if (submitted < expected) {
+		setOutput(output, renderTerminalPreview(profile, session.values), "idle");
+		return;
+	}
+
+	const submittedValues = session.values.join("\n");
+	session.values = [];
+	await runCode(block, button, `${submittedValues}\n`);
+}
+
+async function handleStdinKeydown(event: KeyboardEvent) {
+	if (event.key !== "Enter" || event.isComposing) return;
+	if (!(event.target instanceof HTMLTextAreaElement)) return;
+	if (!event.target.matches("[data-run-stdin]")) return;
+
+	const block = event.target.closest("[data-code-runner]");
+	if (!(block instanceof HTMLElement)) return;
+
+	ensureStdinSubmitButton(block);
+	const button =
+		block.querySelector<HTMLButtonElement>('button[data-run-action="submit-input"]') ??
+		getRunButton(block);
+	if (!button) return;
+
+	event.preventDefault();
+	await submitStdin(block, button);
+}
+
+function handleStdinFocus(event: FocusEvent) {
+	if (!(event.target instanceof HTMLTextAreaElement)) return;
+	if (!event.target.matches("[data-run-stdin]")) return;
+
+	const block = event.target.closest("[data-code-runner]");
+	if (block instanceof HTMLElement) {
+		ensureStdinSubmitButton(block);
+		const output = getOutput(block);
+		if (output?.hidden) {
+			setOutput(
+				output,
+				renderTerminalPreview(detectStdinProfile(block), getStdinSession(block).values),
+				"idle",
+			);
+		}
+	}
+}
+
+async function handleCodeToolClick(event: MouseEvent) {
+	const button = getActionButton(event.target);
+	if (!button) return;
+
+	const block = getRunnerBlock(button);
+	if (!block) return;
+
+	const action = button.dataset.runAction;
+	if (action === "copy") {
+		setCopyState(button, await copyText(getCode(block)));
+		return;
+	}
+
+	if (action === "edit") {
+		toggleEditor(block, button);
+		return;
+	}
+
+	if (action === "stdin") {
+		toggleStdin(block, button);
+		return;
+	}
+
+	if (action === "submit-input") {
+		await submitStdin(block, button);
+		return;
+	}
+
+	if (action === "run") {
+		await runCode(block, button);
+		stdinSessions.delete(block);
+	}
+}
+
+if (!window._codeRunnerBound) {
+	document.addEventListener("click", handleCodeToolClick);
+	document.addEventListener("keydown", handleStdinKeydown);
+	document.addEventListener("focusin", handleStdinFocus);
+	window._codeRunnerBound = true;
+}
 </script>
+
+<style is:global>
+.custom-md .code-block {
+	position: relative;
+	margin: 1rem 0;
+}
+
+.custom-md .code-block pre {
+	margin: 0;
+	padding-top: 3rem;
+}
+
+.custom-md .code-block-toolbar {
+	position: absolute;
+	z-index: 10;
+	top: 0.5rem;
+	right: 0.5rem;
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+}
+
+.custom-md .code-block-language {
+	display: none;
+	padding: 0.3rem 0.55rem;
+	border-radius: 0.45rem;
+	background: rgb(255 255 255 / 0.08);
+	color: rgb(255 255 255 / 0.72);
+	font-size: 0.75rem;
+	line-height: 1;
+}
+
+.custom-md .code-tool-btn {
+	display: inline-flex;
+	width: 2rem;
+	height: 2rem;
+	align-items: center;
+	justify-content: center;
+	border: 0;
+	border-radius: 0.45rem;
+	background: oklch(0.30 0.02 var(--hue));
+	color: rgb(255 255 255 / 0.78);
+	opacity: 0.82;
+	transition: color 0.15s ease, background-color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+}
+
+.custom-md .code-tool-btn:hover,
+.custom-md .code-tool-btn.is-active {
+	color: white;
+	opacity: 1;
+	background: oklch(0.38 0.04 var(--hue));
+}
+
+.custom-md .code-tool-btn:active {
+	transform: scale(0.92);
+}
+
+.custom-md .code-tool-btn:disabled {
+	cursor: wait;
+	opacity: 0.6;
+}
+
+.custom-md .code-tool-btn.is-success {
+	color: var(--deep-text);
+	background: var(--primary);
+}
+
+.custom-md .code-tool-btn.is-error {
+	color: white;
+	background: #b91c1c;
+}
+
+.custom-md .code-tool-run.is-running svg {
+	animation: code-run-spin 0.8s linear infinite;
+}
+
+.custom-md .code-run-stdin-panel {
+	display: flex;
+	align-items: stretch;
+	gap: 0.5rem;
+	margin-top: 0.5rem;
+}
+
+.custom-md .code-run-stdin-panel[hidden] {
+	display: none;
+}
+
+.custom-md .code-run-editor,
+.custom-md .code-run-stdin,
+.custom-md .code-run-output {
+	width: 100%;
+	margin-top: 0.5rem;
+	border: 1px solid rgb(255 255 255 / 0.12);
+	border-radius: 0.65rem;
+	background: #1e1e1e;
+	color: #d4d4d4;
+	font-family: "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+	font-size: 0.875rem;
+	line-height: 1.6;
+}
+
+.custom-md .code-run-editor,
+.custom-md .code-run-stdin {
+	padding: 0.75rem;
+	resize: vertical;
+	outline: none;
+}
+
+.custom-md .code-run-stdin-panel .code-run-stdin {
+	flex: 1 1 auto;
+	min-width: 0;
+	margin-top: 0;
+}
+
+.custom-md .code-run-stdin-panel .code-stdin-submit {
+	flex: 0 0 3rem;
+	width: 3rem;
+	height: auto;
+	align-self: stretch;
+}
+
+.custom-md .code-run-output {
+	overflow-x: auto;
+	white-space: pre-wrap;
+	padding: 0.85rem;
+}
+
+.custom-md .code-run-output[data-state="running"] {
+	color: rgb(212 212 212 / 0.65);
+}
+
+.custom-md .code-run-output[data-state="error"] {
+	color: #fca5a5;
+	border-color: rgb(185 28 28 / 0.55);
+}
+
+@media (min-width: 640px) {
+	.custom-md .code-block-language {
+		display: inline-flex;
+	}
+}
+
+@keyframes code-run-spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+</style>
