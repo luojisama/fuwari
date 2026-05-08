@@ -551,6 +551,41 @@ for (int i = 1; i < arr.length; i++) {
 System.out.println(min); // 1
 ```
 
+## 二维数组与多维数组
+
+二维数组可以理解为“数组里再放数组”，常用于表格、矩阵、成绩单这类行列结构：
+
+```java
+int[][] scores = {
+    {90, 88, 95},
+    {76, 80, 72},
+    {100, 98}
+};
+
+// 外层循环控制行，内层循环控制每一行中的列
+for (int i = 0; i < scores.length; i++) {
+    for (int j = 0; j < scores[i].length; j++) {
+        System.out.print(scores[i][j] + "\t");
+    }
+    System.out.println();
+}
+```
+
+需要注意：Java 的二维数组每一行长度可以不同，所以遍历列时应使用 `scores[i].length`，不要默认每一行都和第一行一样长。
+
+三维数组就是在二维数组外再套一层，语法上可以继续嵌套：
+
+```java
+int[][][] data = {
+    {
+        {1, 2, 3},
+        {4, 5, 6}
+    }
+};
+
+System.out.println(data[0][1][2]); // 6
+```
+
 ---
 
 # 字符串操作
@@ -1157,4 +1192,299 @@ PetAgree pa = new PetAgree();
 Pet pet = pa.buy();
 pet.eat(); // 调用 Dog 的 eat()
 ```
+
+## Object 数组
+
+`Object` 是所有类的父类，所以 `Object[]` 可以保存不同类型的引用数据，也可以保存自动装箱后的基本类型：
+
+```java
+Object[] arr = new Object[4];
+arr[0] = "张三";
+arr[1] = 18;       // int 自动装箱为 Integer
+arr[2] = 98.5;
+arr[3] = new Dog();
+
+for (Object item : arr) {
+    System.out.println(item);
+}
+```
+
+不过 `Object[]` 会丢失具体类型信息，取出后如果要调用子类特有方法，通常需要配合 `instanceof` 判断后再强制转换。
+
 # 接口
+
+## 是什么
+
+接口是一种“规则”或“能力”的定义，只规定应该有什么方法，不关心具体怎么实现。类通过 `implements` 实现接口，实现后必须重写接口中的抽象方法，否则这个类也要声明为抽象类。
+
+```java
+public interface USB {
+    void work();
+}
+
+public class MouseUSB implements USB {
+    @Override
+    public void work() {
+        System.out.println("鼠标开始工作");
+    }
+}
+
+public class DiskUSB implements USB {
+    @Override
+    public void work() {
+        System.out.println("U 盘开始工作");
+    }
+}
+```
+
+使用接口类型接收不同实现类对象，就能形成面向接口的多态：
+
+```java
+USB usb = new MouseUSB();
+usb.work();
+
+usb = new DiskUSB();
+usb.work();
+```
+
+这里左边的 `USB` 决定能调用什么方法，右边的实际对象决定方法执行结果。
+
+## 接口的特点
+
+- 接口使用 `interface` 定义
+- 类使用 `implements` 实现接口
+- 一个类可以实现多个接口，用逗号隔开
+- 接口不能直接 `new` 对象
+- 接口可以继承接口，并且支持多继承
+- 接口中的抽象方法默认是 `public abstract`
+- 接口中的常量默认是 `public static final`
+
+```java
+public interface SuperA {
+    void a();
+}
+
+public interface SuperB {
+    void b();
+}
+
+public interface SuperC {
+    void c();
+}
+
+public class ImpClass implements SuperA, SuperB, SuperC {
+    @Override
+    public void a() {
+        System.out.println("实现 a");
+    }
+
+    @Override
+    public void b() {
+        System.out.println("实现 b");
+    }
+
+    @Override
+    public void c() {
+        System.out.println("实现 c");
+    }
+}
+```
+
+## 接口表示能力
+
+一个类实现某个接口，就代表它具备接口中规定的能力。比如业务员会讲业务，程序员会写程序，一个软件工程师可以同时具备这两种能力：
+
+```java
+public interface Person {
+    void setName(String name);
+    String getName();
+}
+
+public interface BizAgent extends Person {
+    void speakWork();
+}
+
+public interface Programmer extends Person {
+    void writeWork();
+}
+
+public class SoftEngineer implements BizAgent, Programmer {
+    private String name;
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public void speakWork() {
+        System.out.println("工程师可以讲解业务");
+    }
+
+    @Override
+    public void writeWork() {
+        System.out.println("工程师可以写程序");
+    }
+}
+```
+
+接口的意义不只是“多写几个方法”，更重要的是降低耦合。调用方只依赖接口，不依赖具体实现类，将来更换实现时，调用方代码通常不需要改。
+
+## 接口作为方法参数
+
+接口常用来定义协作规则。下面的打印机不关心具体纸张和墨盒是哪一个类，只要求它们遵守 `Paper` 和 `InkBox` 这两个接口：
+
+```java
+public interface Paper {
+    String getPaperSize();
+}
+
+public interface InkBox {
+    String getInkBoxType();
+}
+
+public class A4Paper implements Paper {
+    @Override
+    public String getPaperSize() {
+        return "A4";
+    }
+}
+
+public class ColorBox implements InkBox {
+    @Override
+    public String getInkBoxType() {
+        return "彩色";
+    }
+}
+
+public class Print {
+    public void input(Paper paper, InkBox inkBox) {
+        System.out.println("使用" + paper.getPaperSize() + "大小的纸打印" + inkBox.getInkBoxType() + "色的内容");
+    }
+}
+
+Print printer = new Print();
+Paper paper = new A4Paper();
+InkBox inkBox = new ColorBox();
+printer.input(paper, inkBox);
+```
+
+这样以后要新增 `A3Paper`、`BlackBox`，只要实现接口即可，`Print` 类不需要重写。
+
+---
+
+# 异常处理
+
+## 什么是异常
+
+异常是程序运行过程中出现的不正常情况，例如输入类型不匹配、数组下标越界、空指针、整数除零等。异常如果不处理，程序可能会直接中断。
+
+```java
+Scanner input = new Scanner(System.in);
+System.out.println("请输入两个整数");
+
+int a = input.nextInt();
+int b = input.nextInt();
+System.out.println(a / b); // b 为 0 时会出现 ArithmeticException
+```
+
+注意：如果是 `double` 类型除以 `0`，Java 通常会得到 `Infinity` 或 `NaN`，不会像整数除零那样抛出 `ArithmeticException`。
+
+## try-catch-finally
+
+把可能出错的代码放进 `try`，异常出现后由 `catch` 捕获处理，`finally` 中的代码一般用于收尾工作，无论是否发生异常都会尝试执行。
+
+```java
+import java.util.InputMismatchException;
+import java.util.Scanner;
+
+Scanner input = new Scanner(System.in);
+
+try {
+    System.out.println("请输入第一个整数");
+    int a = input.nextInt();
+
+    System.out.println("请输入第二个整数");
+    int b = input.nextInt();
+
+    System.out.println("商：" + a / b);
+} catch (InputMismatchException e) {
+    System.out.println("输入的不是整数");
+} catch (ArithmeticException e) {
+    System.out.println("除数不能为 0");
+} catch (Exception e) {
+    System.out.println("出现未知错误：" + e.getMessage());
+} finally {
+    input.close();
+    System.out.println("计算结束");
+}
+```
+
+多个 `catch` 同时存在时，应把更具体的异常写在前面，把父类异常 `Exception` 写在后面，否则前面的父类会先把所有异常都接住。
+
+## throws 与 throw
+
+`throws` 写在方法声明后面，表示这个方法可能把异常交给调用者处理；`throw` 写在方法内部，用来主动抛出一个异常对象。
+
+```java
+public static int divide(int a, int b) throws ArithmeticException {
+    if (b == 0) {
+        throw new ArithmeticException("除数不能为 0");
+    }
+    return a / b;
+}
+
+public static void main(String[] args) {
+    try {
+        System.out.println(divide(10, 0));
+    } catch (ArithmeticException e) {
+        System.out.println(e.getMessage());
+    }
+}
+```
+
+初学阶段更推荐先学会在合适的位置用 `try-catch` 处理异常，不要随意把异常一直向外抛。
+
+## 自定义异常
+
+自定义异常类通常继承 `Exception` 或 `RuntimeException`。继承 `Exception` 的异常属于受检异常，调用者必须处理或继续声明抛出。
+
+```java
+public class MyException extends Exception {
+    public MyException() {
+    }
+
+    public MyException(String message) {
+        super(message);
+    }
+}
+
+public static void checkAge(int age) throws MyException {
+    if (age < 0 || age > 150) {
+        throw new MyException("年龄不合法");
+    }
+}
+```
+
+自定义异常的作用是把业务规则表达清楚。相比直接抛出普通 `Exception`，自定义异常能让调用者更准确地知道哪里出了问题。
+
+## finally、return 与 System.exit
+
+正常情况下，即使 `try` 或 `catch` 中执行了 `return`，`finally` 仍然会先执行，然后方法才真正返回。但如果执行了 `System.exit(0)` 强制退出 JVM，后续代码和 `finally` 都不会再执行。
+
+```java
+public static int test() {
+    try {
+        return 1;
+    } finally {
+        System.out.println("finally 仍然会执行");
+    }
+}
+```
+
+可以简单记为：`System.exit()` 会直接结束程序；`finally` 负责收尾；`return` 负责结束当前方法。
