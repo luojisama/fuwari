@@ -98,7 +98,8 @@ export async function addMessage(
 export async function getLikes(slug: string): Promise<number> {
 	try {
 		if (USE_VERCEL_KV && kvClient) {
-			return (await kvClient.hget<number>("likes", slug)) || 0;
+			const val = await kvClient.hget<number>("likes", slug);
+			return val || 0;
 		}
 		if (USE_REDIS_URL && redisClient) {
 			const val = await redisClient.hget("likes", slug);
@@ -119,10 +120,14 @@ export async function getLikes(slug: string): Promise<number> {
 export async function addLike(slug: string): Promise<number> {
 	try {
 		if (USE_VERCEL_KV && kvClient) {
-			return await kvClient.hincrby("likes", slug, 1);
+			const val = await kvClient.hincrby("likes", slug, 1);
+			console.log(`Like added (KV) for ${slug}: ${val}`);
+			return val;
 		}
 		if (USE_REDIS_URL && redisClient) {
-			return await redisClient.hincrby("likes", slug, 1);
+			const val = await redisClient.hincrby("likes", slug, 1);
+			console.log(`Like added (Redis) for ${slug}: ${val}`);
+			return val;
 		}
 		let likes: Record<string, number> = {};
 		if (fs.existsSync(LIKES_PATH)) {
@@ -131,6 +136,7 @@ export async function addLike(slug: string): Promise<number> {
 		}
 		likes[slug] = (likes[slug] || 0) + 1;
 		fs.writeFileSync(LIKES_PATH, JSON.stringify(likes, null, 2));
+		console.log(`Like added (Local) for ${slug}: ${likes[slug]}`);
 		return likes[slug];
 	} catch (error) {
 		console.error("Failed to add like:", error);
