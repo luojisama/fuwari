@@ -94,3 +94,46 @@ export async function addMessage(
 	}
 	return newMessage;
 }
+
+export async function getLikes(slug: string): Promise<number> {
+	try {
+		if (USE_VERCEL_KV && kvClient) {
+			return (await kvClient.hget<number>("likes", slug)) || 0;
+		}
+		if (USE_REDIS_URL && redisClient) {
+			const val = await redisClient.hget("likes", slug);
+			return val ? Number.parseInt(val) : 0;
+		}
+		if (fs.existsSync(LIKES_PATH)) {
+			const data = fs.readFileSync(LIKES_PATH, "utf-8");
+			const likes = JSON.parse(data);
+			return likes[slug] || 0;
+		}
+		return 0;
+	} catch (error) {
+		console.error("Failed to get likes:", error);
+		return 0;
+	}
+}
+
+export async function addLike(slug: string): Promise<number> {
+	try {
+		if (USE_VERCEL_KV && kvClient) {
+			return await kvClient.hincrby("likes", slug, 1);
+		}
+		if (USE_REDIS_URL && redisClient) {
+			return await redisClient.hincrby("likes", slug, 1);
+		}
+		let likes: Record<string, number> = {};
+		if (fs.existsSync(LIKES_PATH)) {
+			const data = fs.readFileSync(LIKES_PATH, "utf-8");
+			likes = JSON.parse(data);
+		}
+		likes[slug] = (likes[slug] || 0) + 1;
+		fs.writeFileSync(LIKES_PATH, JSON.stringify(likes, null, 2));
+		return likes[slug];
+	} catch (error) {
+		console.error("Failed to add like:", error);
+		return 0;
+	}
+}

@@ -104,7 +104,7 @@ export const GET: APIRoute = async ({ request }) => {
 		const repos = reposRes.ok
 			? ((await reposRes.json()) as GithubRepo[]).slice(0, 4)
 			: [];
-			
+
 		let yearlyCommitCount = 0;
 		if (contribsRes.ok) {
 			try {

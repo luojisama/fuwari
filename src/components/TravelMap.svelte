@@ -19,10 +19,10 @@ export let markerConfig = {
 };
 
 let mapContainer: HTMLElement;
-  // biome-ignore lint/suspicious/noExplicitAny: Leaflet map instance
-  let map: any;
+// biome-ignore lint/suspicious/noExplicitAny: Leaflet map instance
+let map: any;
 
-  onMount(() => {
+onMount(() => {
 	// Load Leaflet CSS
 	if (!document.getElementById("leaflet-css")) {
 		const link = document.createElement("link");
@@ -76,48 +76,45 @@ function initMap() {
 		// Option 1: CartoDB Voyager (Original - Clean, Light) - May be slow in China
 		cartoVoyager: {
 			url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-			attr: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+			attr: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
 		},
 		// Option 2: GeoQ Community (Best for China - Fast, English/Chinese)
 		geoqCommunity: {
 			url: "https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}",
-			attr: '地图数据 &copy; <a href="http://www.geoq.cn/">GeoQ</a>'
+			attr: '地图数据 &copy; <a href="http://www.geoq.cn/">GeoQ</a>',
 		},
 		// Option 3: GeoQ PurplishBlue (Dark/Cool style)
 		geoqBlue: {
 			url: "https://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineStreetPurplishBlue/MapServer/tile/{z}/{y}/{x}",
-			attr: '地图数据 &copy; <a href="http://www.geoq.cn/">GeoQ</a>'
+			attr: '地图数据 &copy; <a href="http://www.geoq.cn/">GeoQ</a>',
 		},
 		// Option 4: ArcGIS World Street Map (Reliable Global)
 		arcgis: {
 			url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-			attr: 'Tiles &copy; Esri'
+			attr: "Tiles &copy; Esri",
 		},
 		// Option 5: GaoDe (AMap) - Most reliable in China (GCJ-02 coordinates)
 		amap: {
 			url: "https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}",
 			attr: '&copy; <a href="https://ditu.amap.com/">高德地图</a>',
-			subdomains: "1234"
+			subdomains: "1234",
 		},
 		// Option 6: Tencent Map (GCJ-02 coordinates)
 		tencent: {
 			url: "https://rt{s}.map.gtimg.com/tile?z={z}&x={x}&y={y}&styleid=1&version=298",
 			attr: '&copy; <a href="https://map.qq.com/">腾讯地图</a>',
-			subdomains: "0123"
-		}
+			subdomains: "0123",
+		},
 	};
 
 	// Use GaoDe (AMap) as the default for best domestic accessibility
 	const activeProvider = tileProviders.amap;
 
-	L.tileLayer(
-		activeProvider.url,
-		{
-			attribution: activeProvider.attr,
-			subdomains: activeProvider.subdomains || "abcd",
-			maxZoom: 18,
-		},
-	).addTo(map);
+	L.tileLayer(activeProvider.url, {
+		attribution: activeProvider.attr,
+		subdomains: activeProvider.subdomains || "abcd",
+		maxZoom: 18,
+	}).addTo(map);
 
 	// Custom Icon Style matching Fuwari theme
 	const createCustomIcon = () => {

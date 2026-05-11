@@ -35,6 +35,7 @@ enum I18nKey {
 	friends = "friends",
 	thoughts = "thoughts",
 	noThoughts = "noThoughts",
+	likes = "likes",
 }
 
 export default I18nKey;

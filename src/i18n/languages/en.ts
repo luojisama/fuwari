@@ -38,4 +38,5 @@ export const en: Translation = {
 	[Key.friends]: "Friends",
 	[Key.thoughts]: "Thoughts",
 	[Key.noThoughts]: "No thoughts",
+	[Key.likes]: "Likes",
 };

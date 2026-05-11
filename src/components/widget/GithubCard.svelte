@@ -46,7 +46,7 @@ async function fetchData(force = false) {
 	const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
 	const cachedData = localStorage.getItem(CACHE_KEY);
 	// 强制禁用本地缓存，确保展示最新数据，也可以通过调整 ONE_HOUR 来恢复
-	const hasValidCache = false; 
+	const hasValidCache = false;
 
 	if (!force && hasValidCache && cachedData) {
 		try {
@@ -66,7 +66,9 @@ async function fetchData(force = false) {
 	try {
 		// 每次请求带上时间戳防止浏览器或中间代理缓存
 		// 注意这里加了斜杠，适配 Astro 的 trailingSlash: "always" 配置
-		const response = await fetch(`/api/github-activity/?username=${USERNAME}&t=${Date.now()}`);
+		const response = await fetch(
+			`/api/github-activity/?username=${USERNAME}&t=${Date.now()}`,
+		);
 		if (!response.ok) {
 			throw new Error(`Github activity api failed: ${response.status}`);
 		}

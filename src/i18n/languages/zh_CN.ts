@@ -38,4 +38,5 @@ export const zh_CN: Translation = {
 	[Key.friends]: "友链",
 	[Key.thoughts]: "繁琐小事",
 	[Key.noThoughts]: "暂无记录",
+	[Key.likes]: "点赞",
 };
