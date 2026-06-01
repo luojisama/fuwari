@@ -1612,6 +1612,49 @@ for (Dog dog : set) {
 }
 ```
 
+## TreeSet
+
+有序、不重复。底层是红黑树，元素按**自然顺序**（数字升序、字母字典序）自动排列，不需要手动排序：
+
+```java
+import java.util.Set;
+import java.util.TreeSet;
+
+Set<Integer> set = new TreeSet<>();
+set.add(5);
+set.add(1);
+set.add(3);
+set.add(2);
+set.add(4);
+
+for (int n : set) {
+    System.out.print(n + " "); // 1 2 3 4 5（自动升序）
+}
+```
+
+字符串同理，按字典序排列：
+
+```java
+Set<String> names = new TreeSet<>();
+names.add("张三");
+names.add("李四");
+names.add("王五");
+
+for (String name : names) {
+    System.out.println(name); // 按字典序输出
+}
+```
+
+与 HashSet 的区别：
+
+| 对比项   | HashSet      | TreeSet          |
+| ------- | ------------ | ---------------- |
+| 底层结构 | 哈希表        | 红黑树            |
+| 顺序     | 无序          | 自动按自然顺序排序 |
+| 性能     | 增删查更快    | 略慢，但有序       |
+
+> 需要去重且不关心顺序用 `HashSet`；需要去重同时保持有序用 `TreeSet`。
+
 ## 迭代器 Iterator
 
 `Iterator` 提供统一的遍历方式，适用于 `List`、`Set`，取出 Map 的键也用到它：
