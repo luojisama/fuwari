@@ -1636,31 +1636,47 @@ while (it.hasNext()) {       // 是否还有下一个元素
 
 `Map` 以键值对方式存储，键唯一，值可重复，通过键获取值：
 
+| 方法签名                            | 说明                             |
+| ---------------------------------- | ------------------------------- |
+| `V put(K key, V value)`             | 添加键值对，键已存在则覆盖原值    |
+| `V get(K key)`                      | 根据键获取值，不存在返回 `null`  |
+| `V remove(K key)`                   | 删除指定键的键值对，返回被删除的值 |
+| `boolean containsKey(K key)`        | 判断是否包含指定键                |
+| `int size()`                        | 获取键值对的数量                  |
+| `Set<K> keySet()`                   | 获取所有键组成的 Set              |
+| `Set<Map.Entry<K,V>> entrySet()`    | 获取所有键值对组成的 Set          |
+
 ```java
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.Iterator;
 
-Map<String, Dog> map = new HashMap<>();
-map.put("1", d1);
-map.put("2", d2);
-map.put("3", d3);
+Map<Integer, String> map = new HashMap<>();
+map.put(100000, "北京市");
+map.put(200000, "上海市");
+map.put(510000, "广州市");
 
-// 遍历 Map：先取出所有键，再通过键取值
-Set<String> keys = map.keySet();
-Iterator<String> it = keys.iterator();
-while (it.hasNext()) {
-    String key = it.next();
-    Dog dog = map.get(key);
-    System.out.println(key + " -> " + dog.getName());
-}
+System.out.println(map.get(100000));           // 北京市
+System.out.println(map.containsKey(200000));   // true
+System.out.println(map.size());                // 3
+```
 
-// 用 forEach 也可以
+**遍历方式一：keySet + get**（先取键，再通过键取值）
+
+```java
 for (String key : map.keySet()) {
-    System.out.println(key + " -> " + map.get(key).getName());
+    System.out.println(key + " -> " + map.get(key));
 }
 ```
+
+**遍历方式二：entrySet + Map.Entry**（一次取出键值对，更推荐）
+
+```java
+for (Map.Entry<Integer, String> entry : map.entrySet()) {
+    System.out.println("邮政编码：" + entry.getKey() + ", 地区：" + entry.getValue());
+}
+```
+
+`Map.Entry` 代表 Map 中的一个键值对，`getKey()` 取键，`getValue()` 取值。`entrySet()` 方式比 `keySet()` 少一次 `get()` 查找，遍历时性能更好，写法也更直接。
 
 ---
 
