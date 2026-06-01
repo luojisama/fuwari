@@ -1488,3 +1488,470 @@ public static int test() {
 ```
 
 可以简单记为：`System.exit()` 会直接结束程序；`finally` 负责收尾；`return` 负责结束当前方法。
+
+---
+
+# 集合框架
+
+## 是什么
+
+Java 提供的一套现成的接口和类，可以直接用来存储、操作一组数据对象。与数组相比：
+
+| 对比项   | 数组                 | 集合             |
+| ------ | ------------------- | --------------- |
+| 长度     | 固定                 | 可变             |
+| 存储内容 | 同一类型（常见基本类型）| 多种类型的对象    |
+| 内存     | 连续空间             | 不一定连续        |
+
+## 集合分类
+
+Java 集合分为两大体系：
+
+```
+Collection（单列集合）      Map（双列集合，键值对）
+├── List（有序可重复）        ├── HashMap（哈希表）
+│   ├── ArrayList            └── TreeMap（红黑树，有序）
+│   └── LinkedList
+└── Set（无序不重复）
+    ├── HashSet
+    └── TreeSet（红黑树，有序）
+```
+
+## Collection 常用方法
+
+这些方法 `List` 和 `Set` 都能用：
+
+| 方法签名                        | 说明                         |
+| ----------------------------- | --------------------------- |
+| `boolean add(Object o)`        | 向集合末尾添加一个对象          |
+| `void add(int i, Object o)`    | 在指定位置 i 插入对象 o（List）|
+| `int size()`                   | 获取集合中元素个数             |
+| `Object get(int i)`            | 获取 i 位置的对象（List）      |
+| `boolean contains(Object o)`   | 判断集合中是否存在某元素        |
+| `boolean remove(Object o)`     | 删除集合中的某个对象            |
+| `Object remove(int i)`         | 删除 i 位置的对象，返回被删除的 |
+
+## ArrayList
+
+底层是数组，查询快，增删慢。最常用的 List 实现类。
+
+```java
+import java.util.ArrayList;
+import java.util.List;
+
+Dog d1 = new Dog("小黑", "白色");
+Dog d2 = new Dog("小白", "黑色");
+Dog d3 = new Dog("小花", "黄色");
+
+// 使用泛型指定元素类型，省去强制转换
+List<Dog> list = new ArrayList<>();
+list.add(d1);
+list.add(d2);
+list.add(1, d3); // 在索引 1 处插入，后面的元素自动后移
+
+// 普通 for 循环
+for (int i = 0; i < list.size(); i++) {
+    Dog dog = list.get(i);
+    System.out.println(dog.getName());
+}
+
+// 增强 for 循环（forEach）
+for (Dog dog : list) {
+    System.out.println(dog.getName());
+}
+
+// contains & remove
+System.out.println(list.contains(d2));  // true
+list.remove(d2);                        // 删除指定对象
+Dog removed = list.remove(0);           // 删除索引 0，返回被删除的对象
+```
+
+> 不指定泛型时，`get()` 返回 `Object`，需要手动强转为 `Dog`；指定泛型后可以直接用 `Dog` 接收，更安全。
+
+## LinkedList
+
+底层是双向链表，增删快，查询慢。接口同 `List`，但提供了额外的头尾操作方法：
+
+```java
+import java.util.LinkedList;
+import java.util.List;
+
+List<Dog> list = new LinkedList<>();
+list.add(d1);
+list.add(d2);
+
+// LinkedList 独有方法，需要声明为 LinkedList 类型才能调用
+LinkedList<Dog> l = new LinkedList<>();
+l.add(d1);
+l.add(d2);
+l.add(d3);
+
+l.addFirst(d1);        // 插入到头部
+l.addLast(d3);         // 插入到尾部
+System.out.println(l.getFirst().getName()); // 获取第一个元素
+System.out.println(l.getLast().getName());  // 获取最后一个元素
+```
+
+## HashSet
+
+无序、不重复。Set 没有索引，不能用普通 for 循环，只能用 forEach 或迭代器遍历：
+
+```java
+import java.util.HashSet;
+import java.util.Set;
+
+Set<Dog> set = new HashSet<>();
+set.add(d1);
+set.add(d2);
+set.add(d3);
+
+System.out.println(set.size()); // 3
+
+for (Dog dog : set) {
+    System.out.println(dog.getName()); // 顺序不固定
+}
+```
+
+## 迭代器 Iterator
+
+`Iterator` 提供统一的遍历方式，适用于 `List`、`Set`，取出 Map 的键也用到它：
+
+```java
+import java.util.Iterator;
+
+// 遍历 List
+List<Dog> list = new ArrayList<>();
+list.add(d1);
+list.add(d2);
+list.add(d3);
+
+Iterator<Dog> it = list.iterator();
+while (it.hasNext()) {       // 是否还有下一个元素
+    Dog dog = it.next();     // 取出下一个元素
+    System.out.println(dog.getName());
+}
+```
+
+## Map / HashMap
+
+`Map` 以键值对方式存储，键唯一，值可重复，通过键获取值：
+
+```java
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Iterator;
+
+Map<String, Dog> map = new HashMap<>();
+map.put("1", d1);
+map.put("2", d2);
+map.put("3", d3);
+
+// 遍历 Map：先取出所有键，再通过键取值
+Set<String> keys = map.keySet();
+Iterator<String> it = keys.iterator();
+while (it.hasNext()) {
+    String key = it.next();
+    Dog dog = map.get(key);
+    System.out.println(key + " -> " + dog.getName());
+}
+
+// 用 forEach 也可以
+for (String key : map.keySet()) {
+    System.out.println(key + " -> " + map.get(key).getName());
+}
+```
+
+---
+
+# JDBC
+
+## 是什么
+
+JDBC（Java Database Connectivity）是 Java 提供的一套操作数据库的 API，通过它可以用 Java 代码执行 SQL 语句，实现对数据库的增删改查。
+
+使用 JDBC 前需要引入数据库驱动 jar 包（以 MySQL 为例：`mysql-connector-java-xxx.jar`），将 jar 包添加到项目依赖中。
+
+## 操作步骤（7步）
+
+```
+1. 加载驱动
+2. 创建连接
+3. 编写 SQL 语句
+4. 预编译 SQL
+5. 执行 SQL
+6. 处理结果
+7. 关闭资源
+```
+
+## 增（INSERT）
+
+```java
+import com.mysql.jdbc.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+// 1. 加载驱动
+try {
+    Class.forName("com.mysql.jdbc.Driver");
+} catch (ClassNotFoundException e) {
+    e.printStackTrace();
+}
+
+// 2. 创建连接
+Connection con = null;
+try {
+    con = (Connection) DriverManager.getConnection(
+        "jdbc:mysql://localhost:3306/数据库名", "root", "123456");
+} catch (SQLException e) {
+    e.printStackTrace();
+}
+
+// 3. 编写 SQL（字符串变量可以用 + 拼接，但推荐用占位符 ?）
+String sql = "insert into student(id, name, age) values(1, '张三', 18)";
+
+// 4. 预编译
+PreparedStatement ps = null;
+try {
+    ps = con.prepareStatement(sql);
+} catch (SQLException e) {
+    e.printStackTrace();
+}
+
+// 5. 执行（增删改用 executeUpdate，返回受影响行数）
+int rows = 0;
+try {
+    rows = ps.executeUpdate();
+} catch (SQLException e) {
+    e.printStackTrace();
+}
+
+// 6. 处理结果
+if (rows > 0) {
+    System.out.println("添加成功");
+}
+
+// 7. 关闭资源（先开后关）
+try { ps.close(); } catch (SQLException e) { e.printStackTrace(); }
+try { con.close(); } catch (SQLException e) { e.printStackTrace(); }
+```
+
+## 删（DELETE）/ 改（UPDATE）
+
+步骤与增数据完全相同，只是 SQL 语句不同：
+
+```java
+// 删除
+String sql = "delete from student where name = '张三'";
+
+// 修改
+String sql = "update student set name = '李四' where id = 1";
+```
+
+## 查（SELECT）
+
+查询需要用 `executeQuery()` 并通过 `ResultSet` 遍历结果集：
+
+```java
+import java.sql.ResultSet;
+
+// 执行查询
+String sql = "select * from student";
+PreparedStatement ps = con.prepareStatement(sql);
+ResultSet rs = ps.executeQuery();
+
+// 遍历结果集
+while (rs.next()) {
+    int id     = rs.getInt("id");
+    String name = rs.getString("name");
+    int age    = rs.getInt("age");
+    System.out.println(id + " - " + name + " - " + age);
+}
+
+// 关闭资源（rs 也要关，顺序：rs → ps → con）
+rs.close();
+ps.close();
+con.close();
+```
+
+## 占位符 `?`
+
+SQL 中用 `?` 代替具体值，再用 `setXxx()` 方法赋值，可以避免 SQL 注入，也让代码更清晰：
+
+```java
+// 占位符从 1 开始计数
+String sql = "insert into student values(?, ?, ?)";
+PreparedStatement ps = con.prepareStatement(sql);
+
+ps.setInt(1, 3);          // 第1个 ? 设置为整数 3
+ps.setString(2, "王五");  // 第2个 ? 设置为字符串
+ps.setInt(3, 19);         // 第3个 ? 设置为整数 19
+
+ps.executeUpdate();
+```
+
+条件查询也可以用占位符：
+
+```java
+String sql = "select * from student where id > ?";
+PreparedStatement ps = con.prepareStatement(sql);
+ps.setInt(1, 5);
+ResultSet rs = ps.executeQuery();
+```
+
+## BaseDao 模式
+
+实际开发中，加载驱动、创建连接、关闭资源这几步在每个操作里都一样，可以提取到父类 `BaseDao` 中复用：
+
+```java
+import com.mysql.jdbc.Connection;
+import java.sql.*;
+
+public class BaseDao {
+    protected Connection con = null;
+    protected PreparedStatement ps = null;
+    protected ResultSet rs = null;
+
+    public void openCon() {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
+            con = (Connection) DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/数据库名", "root", "123456");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void closeAll() {
+        try {
+            if (rs  != null) rs.close();
+            if (ps  != null) ps.close();
+            if (con != null) con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+业务类继承 `BaseDao`，直接调用 `openCon()` 和 `closeAll()`：
+
+```java
+public class EmpCRUD extends BaseDao {
+
+    public void addEmp() {
+        try {
+            openCon();
+            String sql = "insert into employee(e_name, e_age, e_loc) values(?, ?, ?)";
+            ps = con.prepareStatement(sql);
+            ps.setString(1, "高八");
+            ps.setInt(2, 21);
+            ps.setString(3, "四川");
+            int rows = ps.executeUpdate();
+            if (rows > 0) System.out.println("添加成功");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeAll(); // 无论成功与否都关闭
+        }
+    }
+
+    public void findAll() {
+        try {
+            openCon();
+            String sql = "select * from employee";
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                System.out.println(
+                    rs.getInt("e_no") + " - " +
+                    rs.getString("e_name") + " - " +
+                    rs.getInt("e_age") + " - " +
+                    rs.getString("e_loc")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeAll();
+        }
+    }
+}
+```
+
+## 查询结果的处理规则
+
+- 根据**主键或唯一键**查询 → 结果只有一条 → 封装进一个对象返回
+- 查询结果**多行** → 每行封装成一个对象 → 所有对象放入 `List` 返回
+
+```java
+// 按 id 查单条，返回 Employee 对象
+public Employee findById(int id) {
+    openCon();
+    Employee emp = null;
+    try {
+        String sql = "select * from employee where e_no = ?";
+        ps = con.prepareStatement(sql);
+        ps.setInt(1, id);
+        rs = ps.executeQuery();
+        if (rs.next()) {
+            emp = new Employee();
+            emp.setE_no(rs.getInt("e_no"));
+            emp.setE_name(rs.getString("e_name"));
+            emp.setE_age(rs.getInt("e_age"));
+            emp.setE_loc(rs.getString("e_loc"));
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        closeAll();
+    }
+    return emp;
+}
+
+// 查多条，返回 List
+public List<Employee> findByAge(int minAge) {
+    List<Employee> list = new ArrayList<>();
+    try {
+        openCon();
+        String sql = "select * from employee where e_age > ?";
+        ps = con.prepareStatement(sql);
+        ps.setInt(1, minAge);
+        rs = ps.executeQuery();
+        while (rs.next()) {
+            Employee emp = new Employee();
+            emp.setE_no(rs.getInt("e_no"));
+            emp.setE_name(rs.getString("e_name"));
+            emp.setE_age(rs.getInt("e_age"));
+            emp.setE_loc(rs.getString("e_loc"));
+            list.add(emp);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    } finally {
+        closeAll();
+    }
+    return list;
+}
+```
+
+## 模糊查询与分页
+
+`LIKE` 用于模糊匹配，`LIMIT` 用于分页，两者配合占位符使用：
+
+```java
+// 查询姓"王"的员工，取前 5 条
+String sql = "select * from employee where e_name like ? limit ?, ?";
+ps = con.prepareStatement(sql);
+ps.setString(1, "王%");   // % 表示任意字符
+ps.setInt(2, 0);           // 从第 0 条开始（offset）
+ps.setInt(3, 5);           // 取 5 条（count）
+rs = ps.executeQuery();
+```
+
+`LIMIT offset, count`：`offset` 是跳过的行数，`count` 是取几条。第一页 offset=0，第二页 offset=5（每页5条），以此类推。
