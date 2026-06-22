@@ -1,6 +1,7 @@
 ---
 title: "JAVA"
 published: 2026-03-16
+updated: 2026-06-10
 description: "这是一篇记录我JAVA学习的文章"
 tags: ["基础教程", "JAVA", "编程"]
 category: "基础教程"
@@ -2014,3 +2015,373 @@ rs = ps.executeQuery();
 ```
 
 `LIMIT offset, count`：`offset` 是跳过的行数，`count` 是取几条。第一页 offset=0，第二页 offset=5（每页5条），以此类推。
+
+---
+
+# 分层开发（MVC 三层架构）
+
+## 为什么要分层
+
+前面的 JDBC 把“连接数据库、拼 SQL、业务判断、界面输出”全堆在一个类里，类一多、表一多就很难维护。分层就是按职责把代码拆开，每一层只干自己的事。
+
+一个标准的三层结构（再加一个实体层）如下：
+
+| 层             | 包名（示例）              | 职责                                       |
+| ------------- | ------------------- | ---------------------------------------- |
+| 实体层 entity    | `com.xxx.entity`    | 和数据库表一一对应的类，一个表一个类，只放属性和 get/set |
+| 数据访问层 dao     | `com.xxx.dao`       | 只和数据库打交道，执行 SQL，做增删改查              |
+| 业务逻辑层 service | `com.xxx.service`   | 处理业务规则，调用 dao，向上返回布尔值或对象         |
+| 视图层 view/test | `com.xxx.test`      | 和用户交互：打印菜单、读取输入、展示结果            |
+
+调用方向是单向的：**view → service → dao → 数据库**，下层不会反过来调用上层。`dao` 和 `service` 通常各自再分出一个 `impl` 子包，接口放外层、实现类放 `impl`，做到“面向接口编程”。
+
+```
+com.kxg.oop
+├── entity                  实体层
+│   ├── Employee.java
+│   └── Department.java
+├── dao                     数据访问层
+│   ├── EmployeeDao.java        接口
+│   ├── BaseDao.java            连接工具类
+│   └── impl
+│       └── EmployeeDaoImpl.java 实现
+├── service                 业务逻辑层
+│   ├── EmployeeService.java    接口
+│   └── impl
+│       └── EmployeeServiceImpl.java 实现
+└── test                    视图层（入口）
+    └── EmployeeTest.java
+```
+
+## 实体层 entity
+
+一个表对应一个类，表的每个字段就是类的一个私有属性，再配上 get/set 和构造方法。
+
+```java
+public class Department {
+    private int depno;      // 部门编号
+    private String depname; // 部门名称
+    private String deploc;  // 部门地址
+
+    public Department() {}
+
+    public Department(int depno, String depname, String deploc) {
+        this.depno = depno;
+        this.depname = depname;
+        this.deploc = deploc;
+    }
+
+    // 省略 get/set...
+}
+```
+
+**外键怎么表示**：员工表里的 `dep_no` 是指向部门表的外键。实体里不要只存一个 `int`，而是存一个**部门对象**，把外键编号放进这个对象里。这样以后想拿部门名称、地址，都能顺着这个对象取到。
+
+```java
+public class Employee {
+    private int eno;
+    private String ename;
+    private int eage;
+    private String eloc;
+    // 外键字段写成主表的对象，对象里再包含外键引用的编号
+    private Department department;
+
+    // 省略构造和 get/set...
+}
+```
+
+## 数据访问层 dao
+
+`dao` 层只负责数据库操作。先用接口约定“有哪些方法”，再写实现类去落实。
+
+**BaseDao**：和 JDBC 章节一样，把建连接、关资源提到父类里复用。`con`、`ps`、`rs` 用 `protected` 修饰，子类（各个 DaoImpl）才能直接拿来用；连接参数也可以提成成员变量，看起来更清楚：
+
+```java
+public class BaseDao {
+    // protected：本包或子类中都能直接使用
+    protected Connection con = null;
+    protected PreparedStatement ps = null;
+    protected ResultSet rs = null;
+
+    String driver = "com.mysql.jdbc.Driver";
+    String url    = "jdbc:mysql://127.0.0.1:3306/oop230501";
+    String user   = "root";
+    String pwd    = "123456";
+
+    public void openCon() {
+        try {
+            Class.forName(driver);
+            con = DriverManager.getConnection(url, user, pwd);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void closeAll() {
+        try {
+            if (rs  != null) rs.close();
+            if (ps  != null) ps.close();
+            if (con != null) con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+**Dao 接口**：只声明方法，不写实现。增删改返回 `int`（受影响的行数），查询返回 `List`：
+
+```java
+public interface EmployeeDao {
+    int insert(Employee employee);          // 增
+    int delete(Employee employee);          // 删
+    int update(Employee employee);          // 改
+    List<Employee> selectAll();             // 查所有
+    List<Employee> selectByNo(Employee employee); // 按编号查
+    List<Employee> selectByAge(int a, int b);     // 按年龄区间查
+}
+```
+
+**Dao 实现类**：`extends BaseDao implements EmployeeDao`，复用父类的连接方法，逐个实现接口里的方法。注意外键的存取——存的时候从对象里取出编号，查的时候把编号塞回对象：
+
+```java
+public class EmployeeDaoImpl extends BaseDao implements EmployeeDao {
+
+    public int insert(Employee employee) {
+        openCon();
+        int i = 0;
+        try {
+            String sql = "insert into employee values(?,?,?,?,?)";
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, employee.getEno());
+            ps.setString(2, employee.getEname());
+            ps.setInt(3, employee.getEage());
+            ps.setString(4, employee.getEloc());
+            // 外键：先拿到部门对象，再从对象里取出部门编号
+            ps.setInt(5, employee.getDepartment().getDepno());
+            i = ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeAll();
+        }
+        return i;
+    }
+
+    @Override
+    public List<Employee> selectAll() {
+        openCon();
+        List<Employee> list = new ArrayList<>();
+        try {
+            String sql = "select * from employee";
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Employee e = new Employee();
+                e.setEno(rs.getInt("e_no"));
+                e.setEname(rs.getString("e_name"));
+                e.setEage(rs.getInt("e_age"));
+                e.setEloc(rs.getString("e_loc"));
+
+                // 结果表里的 dep_no 是外键：
+                // 先存进部门对象，再把部门对象存进员工对象
+                Department d = new Department();
+                d.setDepno(rs.getInt("dep_no"));
+                e.setDepartment(d);
+
+                list.add(e);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            closeAll();
+        }
+        return list;
+    }
+    // delete / update / selectByNo / selectByAge 同理
+}
+```
+
+> 按年龄区间查询用的是 SQL 的 `between ? and ?`：`select * from employee where e_age between ? and ?`。
+
+## 业务逻辑层 service
+
+`service` 同样是接口 + 实现。实现类里持有一个 `dao` 对象，并且**私有化**——上层调用下层，这个 dao 只在本类内部用，不对外暴露。
+
+增删改的 dao 返回的是受影响行数（`int`），service 把它转成更好用的 `boolean`：大于 0 就说明操作成功。
+
+```java
+public class EmployeeServiceImpl implements EmployeeService {
+    // 上层调下层，私有化，只在本类使用
+    private EmployeeDao employeeDao = new EmployeeDaoImpl();
+
+    public boolean add(Employee employee) {
+        // 受影响行数 > 0 即添加成功，直接返回比较结果
+        return employeeDao.insert(employee) > 0;
+    }
+
+    @Override
+    public boolean delete(Employee employee) {
+        return employeeDao.delete(employee) > 0;
+    }
+
+    @Override
+    public List<Employee> selectAll() {
+        return employeeDao.selectAll();
+    }
+    // update / selectByNo / selectByAge 同理
+}
+```
+
+`return employeeDao.insert(employee) > 0;` 是下面这段的简写，效果完全一样：
+
+```java
+int i = employeeDao.insert(employee);
+boolean flag = false;
+if (i > 0) {
+    flag = true;
+}
+return flag;
+```
+
+## 视图层 / 测试类
+
+视图层是程序入口，负责和用户打交道：循环打印菜单，根据用户的选择调用对应的 service 方法。这里**不直接碰 dao，也不写 SQL**。
+
+```java
+public class DeptTest {
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        DepartmentService ds = new DepartmentServiceImpl();
+        int choice = -1;
+        while (choice != 0) {
+            System.out.println("=====部门管理系统=====");
+            System.out.println("1. 查询所有部门");
+            System.out.println("2. 根据编号查询部门");
+            System.out.println("3. 添加部门");
+            System.out.println("4. 修改部门");
+            System.out.println("5. 删除部门");
+            System.out.println("0. 退出");
+            System.out.print("请选择：");
+            choice = input.nextInt();
+            switch (choice) {
+                case 1:
+                    List<Department> all = ds.findAll();
+                    System.out.println("编号\t名称\t位置");
+                    for (Department dept : all) {
+                        System.out.println(dept.getDepno() + "\t" + dept.getDepname() + "\t" + dept.getDeploc());
+                    }
+                    break;
+                case 3:
+                    System.out.print("请输入部门编号：");
+                    int ano = input.nextInt();
+                    System.out.print("请输入部门名称：");
+                    String aname = input.next();
+                    System.out.print("请输入部门地址：");
+                    String aloc = input.next();
+                    Department adept = new Department(ano, aname, aloc);
+                    System.out.println(ds.add(adept) ? "添加成功" : "添加失败");
+                    break;
+                // case 2/4/5 略，结构相同
+                case 0:
+                    System.out.println("退出系统");
+                    break;
+                default:
+                    System.out.println("无效选项，请重新选择");
+            }
+        }
+        input.close();
+    }
+}
+```
+
+## 串一遍：添加一个部门
+
+以“添加部门”为例，一次完整的调用会穿过三层：
+
+1. **view**：读取用户输入，封装成一个 `Department` 对象，调用 `ds.add(adept)`
+2. **service**：`add()` 调用 `dao.insert(dept)`，拿到受影响行数后返回 `行数 > 0`
+3. **dao**：`insert()` 打开连接、执行 `insert` SQL、关闭资源，返回受影响行数
+4. 结果一路返回到 view，view 根据 `boolean` 打印“添加成功 / 失败”
+
+分层的好处就在这里：哪天要换数据库，只动 dao；要改业务规则，只动 service；要换界面（比如做成网页），只动 view，互不影响。
+
+---
+
+# 日期类型的处理
+
+学生表里有“出生日期”这种日期字段，而 Java 里和日期相关的 `Date` 有两个，混用很容易踩坑。
+
+## java.util.Date 与 java.sql.Date
+
+| 对比项 | `java.util.Date`        | `java.sql.Date`          |
+| ---- | ----------------------- | ------------------------ |
+| 用途   | 普通 Java 代码里的日期时间    | JDBC 专用，对应数据库的 date 字段 |
+| 关系   | 父类                      | 子类（只保留年月日，丢掉时分秒）   |
+
+约定：**实体类里的日期属性用 `java.util.Date`**，到了 dao 操作数据库时再转成 `java.sql.Date`。
+
+```java
+import java.util.Date;
+
+public class Student {
+    private int stu_no;
+    private String stu_name;
+    private Date stu_born;   // 出生日期，用 java.util.Date
+    // 省略其它字段和 get/set...
+}
+```
+
+## 存：util.Date → sql.Date
+
+`PreparedStatement` 的 `setDate()` 只认 `java.sql.Date`，所以存之前要做一次转换：用实体里 util.Date 的 `getTime()` 拿到毫秒数，再用这个毫秒数 `new` 一个 sql.Date。
+
+```java
+import java.sql.Date;   // 注意这里 import 的是 java.sql.Date
+
+// student.getStu_born() 是 java.util.Date
+// getTime() 取出毫秒值，再构造成 java.sql.Date
+ps.setDate(8, new Date(student.getStu_born().getTime()));
+```
+
+> 因为实体用 `java.util.Date`、这里又要 `java.sql.Date`，两个同名类不能同时 `import`。一般 `import java.sql.Date`，另一个用全限定名 `java.util.Date` 区分。
+
+## 取：rs.getDate
+
+查询时 `rs.getDate("stu_born")` 返回的是 `java.sql.Date`。由于它本身就是 `java.util.Date` 的子类（向上转型），可以直接塞回实体的 util.Date 属性里：
+
+```java
+s.setStu_born(rs.getDate("stu_born")); // sql.Date 自动当作 util.Date 使用
+```
+
+## 字符串 → 日期：SimpleDateFormat
+
+用户从键盘输入的生日是字符串（如 `2008-05-01`），需要用 `SimpleDateFormat` 按指定格式把它解析成 `Date`。解析过程可能因为格式不对抛出 `ParseException`，要用 `try-catch` 包住：
+
+```java
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+System.out.print("请输入出生日期(yyyy-MM-dd)：");
+String bornStr = input.next();
+Date born = null;
+try {
+    // 把字符串按 yyyy-MM-dd 格式解析成 java.util.Date
+    born = new SimpleDateFormat("yyyy-MM-dd").parse(bornStr);
+} catch (ParseException e) {
+    e.printStackTrace();
+}
+student.setStu_born(born);
+```
+
+格式字母：`yyyy` 年、`MM` 月、`dd` 日（还有 `HH` 时、`mm` 分、`ss` 秒）。反过来，`format()` 方法可以把一个 `Date` 转成指定格式的字符串：
+
+```java
+String text = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+// 例如：2026-06-10
+```
+
+一句话理清这条链路：键盘输入字符串 →（`SimpleDateFormat.parse`）→ `util.Date` 存进实体 →（`getTime()` 转 `sql.Date`）→ 存入数据库；查询时 `rs.getDate` 取出 `sql.Date`，当作 `util.Date` 放回实体即可。
