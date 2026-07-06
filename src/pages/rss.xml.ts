@@ -6,6 +6,7 @@ import MarkdownIt from "markdown-it";
 import sanitizeHtml from "sanitize-html";
 
 const parser = new MarkdownIt();
+const FULL_CONTENT_ITEM_LIMIT = 5;
 
 export async function GET(context: APIContext): Promise<Response> {
 	const blog = await getSortedPosts();
@@ -14,15 +15,23 @@ export async function GET(context: APIContext): Promise<Response> {
 		title: siteConfig.title,
 		description: siteConfig.subtitle || "No description",
 		site: context.site ?? "https://fuwari.vercel.app",
-		items: blog.map((post) => {
-			const content =
-				typeof post.body === "string" ? post.body : String(post.body || "");
-
-			return {
+		items: blog.map((post, index) => {
+			const item = {
 				title: post.data.title,
 				pubDate: post.data.published,
 				description: post.data.description || "",
 				link: `/posts/${post.slug}/`,
+			};
+
+			if (index >= FULL_CONTENT_ITEM_LIMIT) {
+				return item;
+			}
+
+			const content =
+				typeof post.body === "string" ? post.body : String(post.body || "");
+
+			return {
+				...item,
 				content: sanitizeHtml(parser.render(content), {
 					allowedTags: sanitizeHtml.defaults.allowedTags.concat(["img"]),
 				}),
