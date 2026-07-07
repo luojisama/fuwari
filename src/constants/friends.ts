@@ -65,6 +65,14 @@ export const friendLinks: FriendLink[] = [
 		tags: [" "],
 		rssurl: "https://blog.viki.moe/rss",
 	},
+	{
+		title: "溪午",
+		imgurl: "https://blog.xiwu.in/avatar.jpg",
+		desc: "随便写写东西",
+		siteurl: "https://blog.xiwu.in/",
+		tags: [" "],
+		rssurl: "https://blog.xiwu.in/rss.xml",
+	},
 ];
 
 export const allFriendLinks: FriendLink[] = [myFriendLinkItem, ...friendLinks];
