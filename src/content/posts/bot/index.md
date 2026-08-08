@@ -1,7 +1,7 @@
 ---
-title: nonebot2的简单部署
-published: 2025-11-17
-description: bot
+title: index
+published: 2026-08-09
+description: "bot"
 image: ""
 tags:
   - bot
@@ -9,6 +9,8 @@ category: 部署bot
 draft: false
 lang: ""
 ---
+
+在这里开始编写你的文章内容...
 > 参考文档：
 >[NoneBot](https://nonebot.dev/)    
 >[NapCat | NapCatQQ](https://napneko.github.io/guide/napcat)    
