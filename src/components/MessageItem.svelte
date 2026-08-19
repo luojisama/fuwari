@@ -13,6 +13,7 @@ installEmojiPackRule(md);
 const sanitizeOptions = {
 	allowedTags: sanitizeHtml.defaults.allowedTags.concat([
 		"img",
+		"video",
 		"details",
 		"summary",
 		"span",
@@ -32,10 +33,22 @@ const sanitizeOptions = {
 			"decoding",
 			"referrerpolicy",
 		],
+		video: [
+			"src",
+			"class",
+			"width",
+			"height",
+			"autoplay",
+			"playsinline",
+			"muted",
+			"loop",
+			"title",
+		],
 		span: ["class"],
 	},
 	allowedClasses: {
 		img: ["emoji", "emoji-sticker"],
+		video: ["emoji", "emoji-sticker"],
 		span: ["spoiler"],
 	},
 	allowedSchemes: ["http", "https", "mailto"],

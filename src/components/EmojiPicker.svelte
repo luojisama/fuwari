@@ -90,17 +90,31 @@ function handleEmojiClick(emojiName: string) {
 								title={emojiName}
 								on:click={() => handleEmojiClick(emojiName)}
 							>
-								<img
-									src={data}
-									alt={emojiName}
-									width={previewSize}
-									height={previewSize}
-									loading="lazy"
-									decoding="async"
-									referrerpolicy="no-referrer"
-									class="object-contain transition hover:scale-110"
-									style={`width: ${previewSize}px; height: ${previewSize}px;`}
-								/>
+								{#if typeof data === "string" && (data.endsWith(".webm") || data.endsWith(".mp4"))}
+									<video
+										src={data}
+										autoplay
+										playsinline
+										muted
+										loop
+										width={previewSize}
+										height={previewSize}
+										class="object-contain transition hover:scale-110 pointer-events-none"
+										style={`width: ${previewSize}px; height: ${previewSize}px;`}
+									></video>
+								{:else}
+									<img
+										src={data}
+										alt={emojiName}
+										width={previewSize}
+										height={previewSize}
+										loading="lazy"
+										decoding="async"
+										referrerpolicy="no-referrer"
+										class="object-contain transition hover:scale-110"
+										style={`width: ${previewSize}px; height: ${previewSize}px;`}
+									/>
+								{/if}
 							</button>
 						{/each}
 					</div>

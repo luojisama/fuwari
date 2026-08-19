@@ -70,6 +70,10 @@ function createEmojiImageHtml(
 	const escapedName = escapeHtmlAttribute(name);
 	const escapedSrc = escapeHtmlAttribute(src);
 
+	if (src.endsWith(".webm") || src.endsWith(".mp4")) {
+		return `<video class="${classes}" src="${escapedSrc}" autoplay playsinline muted loop width="${size}" height="${size}" title="${escapedName}"></video>`;
+	}
+
 	return `<img class="${classes}" src="${escapedSrc}" alt="${escapedName}" title="${escapedName}" width="${size}" height="${size}" loading="lazy" decoding="async" referrerpolicy="no-referrer">`;
 }
 
