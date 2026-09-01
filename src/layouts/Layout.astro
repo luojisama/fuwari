@@ -104,7 +104,6 @@ const bannerOffset =
 				  media={favicon.theme && `(prefers-color-scheme: ${favicon.theme})`}
 			/>
 		))}
-		<link rel="stylesheet" href={url("/fonts/lxgw-wenkai-screen/font.css")} />
 		<link rel="stylesheet" href={url("/fonts/maoken-zhuyuan-ti/font.css")} />
 
 		<!-- Set the theme before the page is rendered to avoid a flash -->
@@ -164,9 +163,9 @@ const bannerOffset =
 }}>
 :root {
 	--font-body-fallback: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
-	--font-body: "LXGW WenKai Screen", var(--font-body-fallback);
-	--font-heading: "LXGW WenKai Screen", var(--font-body-fallback);
-	--font-brand: "MaokenZhuyuanTi", "LXGW WenKai Screen", var(--font-body-fallback);
+	--font-body: var(--font-body-fallback);
+	--font-heading: var(--font-body-fallback);
+	--font-brand: "MaokenZhuyuanTi", var(--font-body-fallback);
 }
 
 html,

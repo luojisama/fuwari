@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { SearchResult } from "@/global";
+import type { PagefindApi, SearchResult } from "@/global";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import Icon from "@iconify/svelte";
@@ -10,7 +10,37 @@ let keywordDesktop = "";
 let keywordMobile = "";
 let result: SearchResult[] = [];
 let isSearching = false;
-let pagefindLoaded = false;
+let searchSequence = 0;
+
+let pagefindPromise: Promise<PagefindApi> | null = null;
+
+function loadPagefind(): Promise<PagefindApi> {
+	if (typeof window !== "undefined" && window.pagefind) {
+		return Promise.resolve(window.pagefind);
+	}
+
+	if (!pagefindPromise) {
+		pagefindPromise = (async () => {
+			const pagefindUrl = new URL(
+				`${import.meta.env.BASE_URL}pagefind/pagefind.js`,
+				window.location.origin,
+			).href;
+			const pagefind = (await import(
+				/* @vite-ignore */ pagefindUrl
+			)) as PagefindApi;
+
+			await pagefind.options({ excerptLength: 20 });
+			await pagefind.init();
+			window.pagefind = pagefind;
+			return pagefind;
+		})().catch((error) => {
+			pagefindPromise = null;
+			throw error;
+		});
+	}
+
+	return pagefindPromise;
+}
 
 const fakeResult: SearchResult[] = [
 	{
@@ -47,7 +77,10 @@ const setPanelVisibility = (show: boolean, isDesktop: boolean): void => {
 };
 
 const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
-	if (!keyword) {
+	const sequence = ++searchSequence;
+	const trimmedKeyword = keyword.trim();
+
+	if (!trimmedKeyword) {
 		setPanelVisibility(false, isDesktop);
 		result = [];
 		return;
@@ -58,8 +91,11 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 	try {
 		let searchResults: SearchResult[] = [];
 
-		if (import.meta.env.PROD && pagefindLoaded) {
-			const response = await window.pagefind.search(keyword);
+		if (import.meta.env.PROD) {
+			const pagefind = await loadPagefind();
+			if (sequence !== searchSequence) return;
+
+			const response = await pagefind.search(trimmedKeyword);
 			searchResults = await Promise.all(
 				response.results.map((item) => item.data()),
 			);
@@ -67,20 +103,24 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 			searchResults = fakeResult;
 		}
 
+		if (sequence !== searchSequence) return;
+
 		result = searchResults;
 		setPanelVisibility(result.length > 0, isDesktop);
 	} catch (error) {
+		if (sequence !== searchSequence) return;
+
 		console.error("Search error:", error);
 		result = [];
 		setPanelVisibility(false, isDesktop);
 	} finally {
-		isSearching = false;
+		if (sequence === searchSequence) {
+			isSearching = false;
+		}
 	}
 };
 
-onMount(async () => {
-	pagefindLoaded = typeof window !== "undefined" && "pagefind" in window;
-
+onMount(() => {
 	if (import.meta.env.DEV) {
 		console.log(
 			"Pagefind is not available in development mode. Using mock data.",
