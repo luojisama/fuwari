@@ -59,16 +59,16 @@
 							</span>
 						{/if}
 						{#if thought.device}
-							<span class="text-xs text-40 hidden sm:inline font-mono">
+							<span class="text-xs text-50 hidden sm:inline font-mono">
 								来自 {thought.device}
 							</span>
 						{/if}
 					</div>
 
 					<div
-						class="bg-[var(--btn-plain-bg-hover)] rounded-xl px-4 py-3 text-70 shadow-sm border border-[var(--line-color)] transition hover:border-[var(--primary)]/30"
+						class="bg-[var(--btn-plain-bg-hover)] rounded-xl px-4 py-3 text-75 shadow-sm border border-[var(--line-color)] transition hover:border-[var(--primary)]/30"
 					>
-						<div class="whitespace-pre-wrap break-words leading-relaxed text-[0.95rem]">
+						<div class="whitespace-pre-wrap break-words leading-relaxed text-[0.95rem] text-75 text-black/75 dark:text-white/85">
 							{thought.content}
 						</div>
 
