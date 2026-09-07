@@ -4,6 +4,7 @@ import Markdown from "@components/misc/Markdown.astro";
 import type { GetStaticPaths } from "astro";
 import { Icon } from "astro-icon/components";
 import Comment from "../../components/Comment.astro";
+import DynamicThoughts from "../../components/DynamicThoughts.svelte";
 import Pagination from "../../components/control/Pagination.astro";
 import { PAGE_SIZE } from "../../constants/constants";
 import I18nKey from "../../i18n/i18nKey";
@@ -49,6 +50,7 @@ const len = page.data.length;
             </div>
 
             <div class="space-y-8 relative before:content-[''] before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[2px] before:bg-[var(--primary)] before:opacity-20">
+                <DynamicThoughts client:load />
                 {renderedThoughts.map((thought) => (
                     <div class="relative pl-8">
                         <div class="absolute left-0 top-2 w-4 h-4 rounded-full bg-[var(--card-bg)] border-2 border-[var(--primary)] z-10"></div>

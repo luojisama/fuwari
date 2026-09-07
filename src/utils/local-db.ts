@@ -3,8 +3,11 @@ import path from "node:path";
 import { createClient } from "@vercel/kv";
 import Redis from "ioredis";
 import type { Message } from "../types/message";
+import type { DynamicThought } from "../types/thought";
 
 const DB_PATH = path.join(process.cwd(), "data", "messages.json");
+const LIKES_PATH = path.join(process.cwd(), "data", "likes.json");
+const THOUGHTS_PATH = path.join(process.cwd(), "data", "thoughts.json");
 
 // Determine which client to use
 const USE_VERCEL_KV = !!(
@@ -143,3 +146,64 @@ export async function addLike(slug: string): Promise<number> {
 		return 0;
 	}
 }
+
+export async function getThoughts(): Promise<DynamicThought[]> {
+	try {
+		let thoughts: DynamicThought[] = [];
+		if (USE_VERCEL_KV && kvClient) {
+			thoughts = (await kvClient.get<DynamicThought[]>("thoughts")) || [];
+		} else if (USE_REDIS_URL && redisClient) {
+			const raw = await redisClient.get("thoughts");
+			thoughts = raw ? JSON.parse(raw) : [];
+		} else if (fs.existsSync(THOUGHTS_PATH)) {
+			const data = fs.readFileSync(THOUGHTS_PATH, "utf-8");
+			thoughts = JSON.parse(data);
+		}
+		// Sort latest first
+		return thoughts.sort((a, b) => b.published - a.published);
+	} catch (error) {
+		console.error("Failed to get thoughts:", error);
+		return [];
+	}
+}
+
+export async function saveThoughts(
+	newThoughts: DynamicThought[],
+): Promise<{ added: number; total: number }> {
+	const current = await getThoughts();
+	const existingIds = new Set(current.map((t) => t.id));
+
+	let addedCount = 0;
+	for (const item of newThoughts) {
+		if (!existingIds.has(item.id)) {
+			current.push({
+				...item,
+				createdAt: item.createdAt || Date.now(),
+			});
+			existingIds.add(item.id);
+			addedCount++;
+		}
+	}
+
+	// Re-sort latest first
+	current.sort((a, b) => b.published - a.published);
+
+	// Limit to max 2000 thoughts
+	if (current.length > 2000) {
+		current.length = 2000;
+	}
+
+	if (USE_VERCEL_KV && kvClient) {
+		await kvClient.set("thoughts", current);
+	} else if (USE_REDIS_URL && redisClient) {
+		await redisClient.set("thoughts", JSON.stringify(current));
+	} else {
+		if (!fs.existsSync(path.dirname(THOUGHTS_PATH))) {
+			fs.mkdirSync(path.dirname(THOUGHTS_PATH), { recursive: true });
+		}
+		fs.writeFileSync(THOUGHTS_PATH, JSON.stringify(current, null, 2));
+	}
+
+	return { added: addedCount, total: current.length };
+}
+

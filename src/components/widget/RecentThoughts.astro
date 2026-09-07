@@ -42,26 +42,64 @@ const { class: className, style } = Astro.props as Props;
 ---
 
 <WidgetLayout name={i18n(I18nKey.thoughts)} id="recent-thoughts" class={className} style={style}>
-    <div class="flex flex-col gap-4">
+    <div id="recent-thoughts-container" class="flex flex-col gap-4">
         {recentThoughts.length === 0 && (
-            <div class="text-sm text-50">
+            <div id="recent-thoughts-empty" class="text-sm text-50">
                 {i18n(I18nKey.noThoughts)}
             </div>
         )}
-        {recentThoughts.map((thought) => (
-            <div class="flex flex-col gap-1">
-                <div class="text-xs text-50 font-mono">
-                    {formatDate(thought.data.published)}
+        <div id="recent-thoughts-dynamic" class="flex flex-col gap-4"></div>
+        <div id="recent-thoughts-static" class="flex flex-col gap-4">
+            {recentThoughts.map((thought) => (
+                <div class="flex flex-col gap-1">
+                    <div class="text-xs text-50 font-mono">
+                        {formatDate(thought.data.published)}
+                    </div>
+                    <div class="text-sm text-75 line-clamp-3">
+                        {createSummary(thought.body)}
+                    </div>
                 </div>
-                <div class="text-sm text-75 line-clamp-3">
-                    {createSummary(thought.body)}
-                </div>
-            </div>
-        ))}
-        {recentThoughts.length > 0 && (
-            <a href={url("/thoughts/")} class="text-xs text-[var(--primary)] hover:underline mt-2">
-                {i18n(I18nKey.more)}...
-            </a>
-        )}
+            ))}
+        </div>
+        <a href={url("/thoughts/")} class="text-xs text-[var(--primary)] hover:underline mt-2">
+            {i18n(I18nKey.more)}...
+        </a>
     </div>
 </WidgetLayout>
+
+<script is:inline>
+    async function updateRecentThoughts() {
+        try {
+            const container = document.getElementById("recent-thoughts-dynamic");
+            if (!container) return;
+            const res = await fetch("/api/thoughts/?limit=3");
+            if (!res.ok) return;
+            const json = await res.json();
+            if (!json.success || !Array.isArray(json.data) || json.data.length === 0) return;
+            
+            const emptyEl = document.getElementById("recent-thoughts-empty");
+            if (emptyEl) emptyEl.style.display = "none";
+
+            container.innerHTML = json.data.map(item => {
+                const d = new Date(item.published);
+                const mm = String(d.getMonth() + 1).padStart(2, "0");
+                const dd = String(d.getDate()).padStart(2, "0");
+                const cleanContent = (item.content || "").replace(/\s+/g, " ").trim();
+                const text = cleanContent.length > 120 ? cleanContent.slice(0, 120) + "…" : cleanContent;
+                return `
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-1.5 text-xs text-50 font-mono">
+                            <span>${mm}-${dd}</span>
+                            ${item.source === "qzone" ? '<span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-sans">QQ空间</span>' : ''}
+                        </div>
+                        <div class="text-sm text-75 line-clamp-3 break-words">
+                            ${text}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        } catch(e) {}
+    }
+    updateRecentThoughts();
+    document.addEventListener("swup:contentReplaced", updateRecentThoughts);
+</script>
