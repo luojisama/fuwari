@@ -131,7 +131,10 @@ export const POST: APIRoute = async ({ request }) => {
 			});
 		}
 
-		const finalEmail = email ? String(email).trim() : undefined;
+		let finalEmail = email ? String(email).trim() : undefined;
+		if (!finalEmail && finalQQ) {
+			finalEmail = `${finalQQ}@qq.com`;
+		}
 		if (finalEmail && !isValidEmail(finalEmail)) {
 			return new Response(JSON.stringify({ error: "邮箱格式不正确" }), {
 				status: 400,
@@ -175,13 +178,28 @@ export const POST: APIRoute = async ({ request }) => {
 			const senderIsOwner = !!ownerEmail && senderEmail === ownerEmail;
 			if (parentId) {
 				const parentMessage = findMessageById(parentId, allMessages);
-				const replyTarget = normalizeEmail(parentMessage?.email);
+				const parentEmail =
+					parentMessage?.email ||
+					(parentMessage?.qq ? `${parentMessage.qq}@qq.com` : undefined);
+				const replyTarget = normalizeEmail(parentEmail);
+
+				// 1. 如果被回复者留有邮箱（或QQ号推导），且不是回复者自己，通知被回复者
 				if (parentMessage && replyTarget && replyTarget !== senderEmail) {
 					await sendEmailIfNeeded({
 						to: replyTarget,
 						subject: "你收到一条新的留言回复",
 						text: `你好 ${parentMessage.nickname}，${newMessage.nickname} 回复了你。\n\n回复内容：${newMessage.content}\n\n原留言：${parentMessage.content}`,
 						html: `<p>你好 ${escapeHtml(parentMessage.nickname)}，${escapeHtml(newMessage.nickname)} 回复了你。</p><p>回复内容：${escapeHtml(newMessage.content)}</p><p>原留言：${escapeHtml(parentMessage.content)}</p>`,
+					});
+				}
+
+				// 2. 如果回复者不是博主，且被回复者不是博主（避免博主重复收信），同时通知博主有新互动
+				if (!senderIsOwner && ownerEmail && replyTarget !== ownerEmail) {
+					await sendEmailIfNeeded({
+						to: ownerEmail,
+						subject: "你的博客收到一条新的留言回复",
+						text: `你好，收到来自 ${newMessage.nickname} 的新回复。\n\n回复对象：${parentMessage ? parentMessage.nickname : "未知"}\n回复内容：${newMessage.content}\n页面：${newMessage.slug || "message-board"}`,
+						html: `<p>你好，收到来自 <strong>${escapeHtml(newMessage.nickname)}</strong> 的新回复。</p><p>回复对象：${escapeHtml(parentMessage ? parentMessage.nickname : "未知")}</p><p>回复内容：${escapeHtml(newMessage.content)}</p><p>页面：${escapeHtml(newMessage.slug || "message-board")}</p>`,
 					});
 				}
 			} else if (!senderIsOwner && ownerEmail) {
