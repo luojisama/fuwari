@@ -1,5 +1,6 @@
 ---
 import { getCollection } from "astro:content";
+import { siteConfig } from "../../config";
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
 import { url } from "../../utils/url-utils";
@@ -48,7 +49,7 @@ const { class: className, style } = Astro.props as Props;
                 {i18n(I18nKey.noThoughts)}
             </div>
         )}
-        <div id="recent-thoughts-dynamic" class="flex flex-col gap-4"></div>
+        <div id="recent-thoughts-dynamic" data-show-qzone={String(siteConfig.thoughts?.showQzone ?? true)} class="flex flex-col gap-4"></div>
         <div id="recent-thoughts-static" class="flex flex-col gap-4">
             {recentThoughts.map((thought) => (
                 <div class="flex flex-col gap-1">
@@ -72,15 +73,19 @@ const { class: className, style } = Astro.props as Props;
         try {
             const container = document.getElementById("recent-thoughts-dynamic");
             if (!container) return;
-            const res = await fetch("/api/thoughts/?limit=3");
+            const showQzone = container.dataset.showQzone !== "false";
+            const res = await fetch("/api/thoughts/?limit=6");
             if (!res.ok) return;
             const json = await res.json();
-            if (!json.success || !Array.isArray(json.data) || json.data.length === 0) return;
+            if (!json.success || !Array.isArray(json.data)) return;
+
+            const filtered = json.data.filter(item => showQzone || item.source !== "qzone").slice(0, 3);
+            if (filtered.length === 0) return;
             
             const emptyEl = document.getElementById("recent-thoughts-empty");
             if (emptyEl) emptyEl.style.display = "none";
 
-            container.innerHTML = json.data.map(item => {
+            container.innerHTML = filtered.map(item => {
                 const d = new Date(item.published);
                 const mm = String(d.getMonth() + 1).padStart(2, "0");
                 const dd = String(d.getDate()).padStart(2, "0");

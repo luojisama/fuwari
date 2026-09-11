@@ -5,7 +5,9 @@ import type { GetStaticPaths } from "astro";
 import { Icon } from "astro-icon/components";
 import Comment from "../../components/Comment.astro";
 import DynamicThoughts from "../../components/DynamicThoughts.svelte";
+import ThoughtActions from "../../components/ThoughtActions.svelte";
 import Pagination from "../../components/control/Pagination.astro";
+import { siteConfig } from "../../config";
 import { PAGE_SIZE } from "../../constants/constants";
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
@@ -50,7 +52,7 @@ const len = page.data.length;
             </div>
 
             <div class="space-y-8 relative before:content-[''] before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[2px] before:bg-[var(--primary)] before:opacity-20">
-                <DynamicThoughts client:load />
+                <DynamicThoughts client:load showQzoneDefault={siteConfig.thoughts?.showQzone ?? true} />
                 {renderedThoughts.map((thought) => (
                     <div class="relative pl-8">
                         <div class="absolute left-0 top-2 w-4 h-4 rounded-full bg-[var(--card-bg)] border-2 border-[var(--primary)] z-10"></div>
@@ -62,6 +64,7 @@ const len = page.data.length;
                                 <Markdown>
                                     <thought.Content />
                                 </Markdown>
+                                <ThoughtActions client:visible thoughtId={thought.id.replace(/\.md$/, "")} />
                             </div>
                         </div>
                     </div>
@@ -70,5 +73,18 @@ const len = page.data.length;
         </div>
     </div>
     <Pagination class="mx-auto onload-animation" page={page} base="thoughts" style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
-    <Comment slug="thoughts" />
+    <div class="mt-8">
+        <details class="card-base p-6 border border-black/5 dark:border-white/5 group">
+            <summary class="flex items-center justify-between cursor-pointer font-bold text-lg text-90 select-none">
+                <div class="flex items-center gap-2">
+                    <Icon name="fa6-solid:comments" class="text-[var(--primary)]" />
+                    <span>展开繁琐小事全页留言板</span>
+                </div>
+                <span class="text-xs text-50 font-normal group-open:rotate-180 transition-transform duration-200">▼</span>
+            </summary>
+            <div class="mt-4 pt-4 border-t border-black/5 dark:border-white/5">
+                <Comment slug="thoughts" />
+            </div>
+        </details>
+    </div>
 </MainGridLayout>

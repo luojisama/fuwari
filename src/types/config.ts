@@ -30,6 +30,9 @@ export type SiteConfig = {
 		stationCode: string; // NMC station code
 		position: "top" | "sticky-top" | "sticky-bottom";
 	};
+	thoughts?: {
+		showQzone?: boolean; // 是否展示QQ空间同步动态
+	};
 
 	favicon: Favicon[];
 };

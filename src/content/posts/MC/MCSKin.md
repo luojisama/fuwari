@@ -101,7 +101,7 @@ else:
 
 除了 KKS 之外还顺手做了校服、仆今和 NBG 打歌服，四套放在一起：
 
-![[06_all_four_maki_skins_showcase.png]]
+![](https://cdn.jsdelivr.net/gh/luojisama/pic_bed@main/img/06_all_four_maki_skins_showcase.png)
 
 # 完整源码
 

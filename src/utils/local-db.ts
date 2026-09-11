@@ -147,6 +147,69 @@ export async function addLike(slug: string): Promise<number> {
 	}
 }
 
+export async function getLikesBatch(
+	slugs: string[],
+): Promise<Record<string, number>> {
+	const result: Record<string, number> = {};
+	if (!slugs || slugs.length === 0) return result;
+	try {
+		if (USE_VERCEL_KV && kvClient) {
+			const values = await kvClient.hmget<(number | null)[]>("likes", ...slugs);
+			if (values && typeof values === "object") {
+				if (Array.isArray(values)) {
+					for (let idx = 0; idx < slugs.length; idx++) {
+						const s = slugs[idx];
+						result[s] = values[idx] || 0;
+					}
+				} else {
+					for (const s of slugs) {
+						result[s] = (values as Record<string, number>)[s] || 0;
+					}
+				}
+			}
+			return result;
+		}
+		if (USE_REDIS_URL && redisClient) {
+			const values = await redisClient.hmget("likes", ...slugs);
+			for (let idx = 0; idx < slugs.length; idx++) {
+				const s = slugs[idx];
+				const val = values[idx];
+				result[s] = val ? Number.parseInt(val) || 0 : 0;
+			}
+			return result;
+		}
+		if (fs.existsSync(LIKES_PATH)) {
+			const data = fs.readFileSync(LIKES_PATH, "utf-8");
+			const likes = JSON.parse(data);
+			for (const s of slugs) {
+				result[s] = likes[s] || 0;
+			}
+			return result;
+		}
+	} catch (error) {
+		console.error("Failed to get likes batch:", error);
+	}
+	return result;
+}
+
+export async function getMessageCounts(
+	slugPrefix?: string,
+): Promise<Record<string, number>> {
+	try {
+		const allMessages = await getMessages();
+		const counts: Record<string, number> = {};
+		for (const m of allMessages) {
+			if (!m.slug) continue;
+			if (slugPrefix && !m.slug.startsWith(slugPrefix)) continue;
+			counts[m.slug] = (counts[m.slug] || 0) + 1;
+		}
+		return counts;
+	} catch (error) {
+		console.error("Failed to get message counts:", error);
+		return {};
+	}
+}
+
 export async function getThoughts(): Promise<DynamicThought[]> {
 	try {
 		let thoughts: DynamicThought[] = [];
@@ -206,4 +269,3 @@ export async function saveThoughts(
 
 	return { added: addedCount, total: current.length };
 }
-

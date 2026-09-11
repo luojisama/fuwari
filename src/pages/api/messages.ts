@@ -2,7 +2,11 @@ import type { APIRoute } from "astro";
 import nodemailer from "nodemailer";
 import { UAParser } from "ua-parser-js";
 import type { Message } from "../../types/message";
-import { addMessage, getMessages } from "../../utils/local-db";
+import {
+	addMessage,
+	getMessageCounts,
+	getMessages,
+} from "../../utils/local-db";
 
 export const prerender = false;
 
@@ -80,6 +84,18 @@ async function sendEmailIfNeeded(input: {
 
 export const GET: APIRoute = async ({ request }) => {
 	const url = new URL(request.url);
+	const countsParam = url.searchParams.get("counts");
+	if (countsParam === "true" || countsParam === "1") {
+		const prefix = url.searchParams.get("prefix") || undefined;
+		const counts = await getMessageCounts(prefix);
+		return new Response(JSON.stringify(counts), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+	}
+
 	const slug = url.searchParams.get("slug") || undefined;
 	const messages = await getMessages(slug);
 	return new Response(JSON.stringify(messages), {

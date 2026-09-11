@@ -33,6 +33,9 @@ export const siteConfig: SiteConfig = {
 		stationCode: "IayMy", // 上海
 		position: "sticky-top",
 	},
+	thoughts: {
+		showQzone: true, // 是否展示QQ空间同步过来的说说
+	},
 	favicon: [
 		// 保留空数组则使用默认favicon
 		{

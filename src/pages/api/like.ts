@@ -1,12 +1,27 @@
 import type { APIRoute } from "astro";
-import { addLike, getLikes } from "../../utils/local-db";
+import { addLike, getLikes, getLikesBatch } from "../../utils/local-db";
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ url }) => {
+	const slugsParam = url.searchParams.get("slugs");
+	if (slugsParam) {
+		const slugs = slugsParam
+			.split(",")
+			.map((s) => s.trim())
+			.filter(Boolean);
+		const batchLikes = await getLikesBatch(slugs);
+		return new Response(JSON.stringify({ likes: batchLikes }), {
+			status: 200,
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+	}
+
 	const slug = url.searchParams.get("slug");
 	if (!slug) {
-		return new Response(JSON.stringify({ error: "Missing slug" }), {
+		return new Response(JSON.stringify({ error: "Missing slug or slugs" }), {
 			status: 400,
 			headers: {
 				"Content-Type": "application/json",
